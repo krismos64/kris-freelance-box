@@ -1,0 +1,30 @@
+/* Ajout des styles responsives */
+@media (max-width: 1024px) {
+  .glass-morphism {
+    margin: 0.5rem;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+  
+  .p-6 {
+    padding: 1rem;
+  }
+}
