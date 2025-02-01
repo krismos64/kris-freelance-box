@@ -9,6 +9,8 @@ import taskRoutes from "./routes/taskRoutes";
 import testRoutes from "./routes/testRoutes"; // Import the test routes
 import documentRoutes from "./routes/documentRoutes"; // Import the document routes
 import companyRoutes from "./routes/companyRoutes"; // Import the company routes
+import paymentRoutes from "./routes/paymentRoutes"; // Import the payment routes
+import revenueRoutes from "./routes/revenueRoutes"; // Import the revenue routes
 import { testDatabaseConnection } from "./config/database";
 import path from "path";
 
@@ -22,7 +24,7 @@ app.use(cors());
 app.use(helmet()); // Sécurisation des en-têtes HTTP
 app.use(morgan("dev")); // Logging des requêtes
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "..", "documents"))); // Serveur statique pour les documents
+app.use(express.static(path.join(__dirname, "..", "..", "documents"))); // Serveur statique pour les documents
 
 // Routes
 app.use("/api/clients", clientRoutes);
@@ -31,6 +33,8 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/test", testRoutes); // Use the test routes
 app.use("/api/documents", documentRoutes); // Use the document routes
 app.use("/api/company", companyRoutes); // Use the company routes
+app.use("/api/payments", paymentRoutes); // Use the payment routes
+app.use("/api/revenues", revenueRoutes); // Use the revenue routes
 
 // Route de santé
 app.get("/api/health", async (req, res) => {

@@ -15,6 +15,8 @@ import {
   Task,
   Document,
   Payment,
+  Company,
+  Revenue,
 } from "../types/database";
 
 // Configuration de base
@@ -246,6 +248,45 @@ export const PaymentService = {
       );
     }
   },
+
+  async create(paymentData: Partial<Payment>): Promise<Payment | null> {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/payments`,
+        paymentData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Erreur lors de la création du paiement", error);
+      return null;
+    }
+  },
+
+  async update(
+    id: number,
+    paymentData: Partial<Payment>
+  ): Promise<Payment | null> {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/api/payments/${id}`,
+        paymentData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour du paiement ${id}`, error);
+      return null;
+    }
+  },
+
+  async delete(id: number): Promise<boolean> {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/payments/${id}`);
+      return true;
+    } catch (error) {
+      console.error(`Erreur lors de la suppression du paiement ${id}`, error);
+      return false;
+    }
+  },
 };
 
 // Service pour les données de l'entreprise
@@ -255,7 +296,10 @@ export const CompanyService = {
       const response = await axios.get(`${API_BASE_URL}/api/company`);
       return response.data;
     } catch (error) {
-      console.error("Erreur lors de la récupération des données de l'entreprise", error);
+      console.error(
+        "Erreur lors de la récupération des données de l'entreprise",
+        error
+      );
       return null;
     }
   },
@@ -265,11 +309,29 @@ export const CompanyService = {
       await axios.put(`${API_BASE_URL}/api/company`, companyData);
       return true;
     } catch (error) {
-      console.error("Erreur lors de la mise à jour des données de l'entreprise", error);
+      console.error(
+        "Erreur lors de la mise à jour des données de l'entreprise",
+        error
+      );
       return false;
     }
   },
+};
 
+// Service pour les revenus
+export const RevenueService = {
+  async fetchAll(): Promise<Revenue[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/revenues`);
+      return response.data;
+    } catch (error) {
+      return handleApiError(
+        mockRevenues,
+        "Erreur lors de la récupération des revenus"
+      );
+    }
+  },
+};
 
 // Services de récupération rapide (pour compatibilité avec les anciens codes)
 export const fetchClients = () => ClientService.fetchAll();
@@ -277,5 +339,5 @@ export const fetchInvoices = () => InvoiceService.fetchAll();
 export const fetchQuotes = () => QuoteService.fetchAll();
 export const fetchTasks = () => TaskService.fetchAll();
 export const fetchDocuments = () => DocumentService.fetchAll();
-export const fetchRevenues = () => Promise.resolve(mockRevenues);
+export const fetchRevenues = () => RevenueService.fetchAll();
 export const fetchPayments = () => PaymentService.fetchAll();

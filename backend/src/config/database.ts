@@ -157,6 +157,65 @@ export const DatabaseServices = {
   async getAllPayments() {
     return executeQuery("SELECT * FROM payments");
   },
+
+  // Informations de l'entreprise
+  async getCompanyInfo() {
+    return executeQuery("SELECT * FROM company_info LIMIT 1");
+  },
+
+  async updateCompanyInfo(companyData: any) {
+    const {
+      companyName,
+      siretNumber,
+      logoUrl,
+      address,
+      postalCode,
+      city,
+      phone,
+      email,
+      taxIdentification,
+      businessSector,
+      foundedDate,
+    } = companyData;
+
+    try {
+      const [result] = await executeQuery(
+        `UPDATE company_info 
+        SET companyName = ?, siretNumber = ?, logoUrl = ?, address = ?, postalCode = ?, city = ?, phone = ?, email = ?, taxIdentification = ?, businessSector = ?, foundedDate = ? 
+        WHERE id = 1`,
+        [
+          companyName,
+          siretNumber,
+          logoUrl,
+          address,
+          postalCode,
+          city,
+          phone,
+          email,
+          taxIdentification,
+          businessSector,
+          foundedDate,
+        ]
+      );
+
+      if (result.affectedRows === 0) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la mise à jour des données de l'entreprise:",
+        error
+      );
+      return false;
+    }
+  },
+
+  // Revenus
+  async getAllRevenues() {
+    return executeQuery("SELECT * FROM revenues");
+  },
 };
 
 export default pool;
