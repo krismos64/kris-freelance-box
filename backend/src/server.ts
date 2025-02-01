@@ -30,12 +30,12 @@ app.get("/api/health", async (req, res) => {
     const dbConnected = await testDatabaseConnection();
     res.json({
       status: "OK",
-      database: dbConnected ? "Connected" : "Disconnected",
+      database: dbConnected ? "connected" : "disconnected", // Simplified status
     });
   } catch (error) {
     res.status(500).json({
       status: "Error",
-      message: "Impossible de vérifier la connexion",
+      message: "Connection check failed",
     });
   }
 });

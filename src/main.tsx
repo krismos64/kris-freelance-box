@@ -12,7 +12,7 @@ async function initializeApp() {
     const response = await axios.get(
       `${import.meta.env.VITE_API_BASE_URL}/health`
     );
-    console.log("Connexion à l'API réussie:", response.data);
+    console.log("Connexion à l'API réussie:", response.data.status);
   } catch (error) {
     console.error("Erreur de connexion à l'API:", error);
   }
