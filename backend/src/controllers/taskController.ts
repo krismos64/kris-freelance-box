@@ -22,7 +22,7 @@ export const createTask = async (req: Request, res: Response) => {
       [title, description, status, dueDate, clientId]
     );
     res.status(201).json({
-      id: result.insertId,
+      id: (result as any).insertId,
       message: "Tâche créée avec succès",
     });
   } catch (error) {

@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import pool from "../config/database";
 
+interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 export const getAllInvoices = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.execute(`
@@ -49,13 +55,13 @@ export const createInvoice = async (req: Request, res: Response) => {
       [invoiceNumber, creationDate, dueDate, clientId, total]
     );
 
-    const invoiceId = invoiceResult.insertId;
+    const invoiceId = (invoiceResult as any).insertId;
 
     // Insérer les lignes de facture
     if (items && items.length > 0) {
       const itemQueries = items.map(() => "(?, ?, ?, ?)").join(", ");
 
-      const itemValues = items.flatMap((item) => [
+      const itemValues = items.flatMap((item: InvoiceItem) => [
         invoiceId,
         item.description,
         item.quantity,

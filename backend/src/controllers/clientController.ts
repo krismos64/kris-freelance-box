@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import pool from "../config/database";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 
 export const getAllClients = async (req: Request, res: Response) => {
   try {
@@ -14,9 +15,10 @@ export const getAllClients = async (req: Request, res: Response) => {
 export const getClientById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const [rows] = await pool.execute("SELECT * FROM clients WHERE id = ?", [
-      id,
-    ]);
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      "SELECT * FROM clients WHERE id = ?",
+      [id]
+    );
     if (rows.length === 0) {
       return res.status(404).json({ error: "Client non trouvé" });
     }
@@ -32,7 +34,7 @@ export const createClient = async (req: Request, res: Response) => {
     req.body;
 
   try {
-    const [result] = await pool.execute(
+    const [result] = await pool.execute<ResultSetHeader>(
       `INSERT INTO clients 
       (name, email, phone, address, postalCode, city, imageUrl, comments, creationDate) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -64,7 +66,7 @@ export const updateClient = async (req: Request, res: Response) => {
     req.body;
 
   try {
-    const [result] = await pool.execute(
+    const [result] = await pool.execute<ResultSetHeader>(
       `UPDATE clients 
       SET name = ?, email = ?, phone = ?, address = ?, 
       postalCode = ?, city = ?, imageUrl = ?, comments = ? 
@@ -87,9 +89,10 @@ export const deleteClient = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const [result] = await pool.execute("DELETE FROM clients WHERE id = ?", [
-      id,
-    ]);
+    const [result] = await pool.execute<ResultSetHeader>(
+      "DELETE FROM clients WHERE id = ?",
+      [id]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Client non trouvé" });

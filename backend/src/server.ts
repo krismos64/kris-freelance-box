@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import morgan from "morgan";
+import helmet from "helmet";
 import clientRoutes from "./routes/clientRoutes";
 import invoiceRoutes from "./routes/invoiceRoutes";
 import taskRoutes from "./routes/taskRoutes";
@@ -13,6 +15,8 @@ const PORT = process.env.SERVER_PORT || 5001;
 
 // Middlewares
 app.use(cors());
+app.use(helmet()); // Sécurisation des en-têtes HTTP
+app.use(morgan("dev")); // Logging des requêtes
 app.use(express.json());
 
 // Routes
@@ -35,6 +39,24 @@ app.get("/api/health", async (req, res) => {
     });
   }
 });
+
+// Gestion des routes non trouvées (404)
+app.use((req, res) => {
+  res.status(404).json({ error: "Route non trouvée" });
+});
+
+// Gestion des erreurs globales
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Erreur non gérée:", err);
+    res.status(500).json({ error: "Une erreur interne est survenue" });
+  }
+);
 
 // Démarrage du serveur
 app.listen(PORT, () => {
