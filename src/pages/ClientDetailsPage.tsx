@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { mockClients, mockInvoices, mockQuotes } from '../mocks/mockData'
+import { Client } from '../types/database'
+import { ClientService } from '../services/api'
 import { Edit, Trash2, Upload, Save, ArrowLeft } from 'lucide-react'
 
 const ClientDetailsPage: React.FC = () => {
@@ -8,13 +9,23 @@ const ClientDetailsPage: React.FC = () => {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const client = mockClients.find(c => c.id === Number(id))
-  const clientInvoices = mockInvoices.filter(inv => inv.clientId === Number(id))
-  const clientQuotes = mockQuotes.filter(quote => quote.clientId === Number(id))
-
+  const [client, setClient] = useState<Client | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editedClient, setEditedClient] = useState(client)
+  const [editedClient, setEditedClient] = useState<Client | null>(null)
   const [imagePreview, setImagePreview] = useState(client?.imageUrl)
+
+  useEffect(() => {
+    const fetchClient = async () => {
+      if (id) {
+        const fetchedClient = await ClientService.fetchById(Number(id))
+        setClient(fetchedClient)
+        setEditedClient(fetchedClient)
+        setImagePreview(fetchedClient?.imageUrl)
+      }
+    }
+
+    fetchClient()
+  }, [id])
 
   if (!client) return <div>Client non trouvé</div>
 
@@ -29,10 +40,22 @@ const ClientDetailsPage: React.FC = () => {
     }
   }
 
-  const handleSave = () => {
-    // Logique de sauvegarde (à remplacer par une vraie mise à jour)
-    console.log('Client mis à jour:', editedClient)
-    setIsEditing(false)
+  const handleSave = async () => {
+    if (editedClient) {
+      const updatedClient = await ClientService.update(editedClient.id, editedClient)
+      if (updatedClient) {
+        setClient(updatedClient)
+        setIsEditing(false)
+      }
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setEditedClient(prev => ({
+      ...prev!,
+      [name]: value
+    }))
   }
 
   return (
@@ -44,7 +67,7 @@ const ClientDetailsPage: React.FC = () => {
         >
           <ArrowLeft />
         </button>
-        <h1 className="text-3xl font-bold">Détails du Client</h1>
+        <h1 className="text-3xl font-bold text-white">Détails du Client</h1>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -80,24 +103,28 @@ const ClientDetailsPage: React.FC = () => {
               <input 
                 type="text" 
                 value={editedClient?.name} 
-                onChange={(e) => setEditedClient({...editedClient!, name: e.target.value})}
+                onChange={handleChange}
+                name="name"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
               <input 
                 type="email" 
                 value={editedClient?.email} 
-                onChange={(e) => setEditedClient({...editedClient!, email: e.target.value})}
+                onChange={handleChange}
+                name="email"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
               <input 
                 type="tel" 
                 value={editedClient?.phone} 
-                onChange={(e) => setEditedClient({...editedClient!, phone: e.target.value})}
+                onChange={handleChange}
+                name="phone"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
               <textarea 
                 value={editedClient?.comments} 
-                onChange={(e) => setEditedClient({...editedClient!, comments: e.target.value})}
+                onChange={handleChange}
+                name="comments"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
                 placeholder="Commentaires"
               />
@@ -128,53 +155,12 @@ const ClientDetailsPage: React.FC = () => {
               </button>
             )}
             <button 
+              onClick={() => ClientService.delete(client.id).then(() => navigate('/clients'))}
               className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Trash2 className="mr-2" /> Supprimer
             </button>
           </div>
-        </div>
-
-        {/* Factures */}
-        <div className="md:col-span-1 bg-white/10 rounded-xl p-6">
-          <h3 className="text-xl font-bold mb-4">Factures</h3>
-          {clientInvoices.map(invoice => (
-            <div 
-              key={invoice.id} 
-              className="bg-white/5 rounded-lg p-4 mb-3 flex justify-between items-center"
-            >
-              <div>
-                <p className="font-bold">{invoice.invoiceNumber}</p>
-                <p className="text-sm text-gray-400">
-                  {new Date(invoice.creationDate).toLocaleDateString()}
-                </p>
-              </div>
-              <span className="font-bold text-green-400">
-                {invoice.total}€
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Devis */}
-        <div className="md:col-span-1 bg-white/10 rounded-xl p-6">
-          <h3 className="text-xl font-bold mb-4">Devis</h3>
-          {clientQuotes.map(quote => (
-            <div 
-              key={quote.id} 
-              className="bg-white/5 rounded-lg p-4 mb-3 flex justify-between items-center"
-            >
-              <div>
-                <p className="font-bold">{quote.quoteNumber}</p>
-                <p className="text-sm text-gray-400">
-                  {new Date(quote.creationDate).toLocaleDateString()}
-                </p>
-              </div>
-              <span className="font-bold text-blue-400">
-                {quote.total}€
-              </span>
-            </div>
-          ))}
         </div>
       </div>
     </div>

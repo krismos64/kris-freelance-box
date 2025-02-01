@@ -248,6 +248,29 @@ export const PaymentService = {
   },
 };
 
+// Service pour les données de l'entreprise
+export const CompanyService = {
+  async fetchCompany(): Promise<Company | null> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/company`);
+      return response.data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données de l'entreprise", error);
+      return null;
+    }
+  },
+
+  async updateCompany(companyData: Partial<Company>): Promise<boolean> {
+    try {
+      await axios.put(`${API_BASE_URL}/api/company`, companyData);
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour des données de l'entreprise", error);
+      return false;
+    }
+  },
+
+
 // Services de récupération rapide (pour compatibilité avec les anciens codes)
 export const fetchClients = () => ClientService.fetchAll();
 export const fetchInvoices = () => InvoiceService.fetchAll();

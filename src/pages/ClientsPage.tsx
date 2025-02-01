@@ -1,40 +1,42 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { mockClients } from '../mocks/mockData'
-import { Plus, Search, Filter, Eye, Trash2 } from 'lucide-react'
-import ClientForm from '../components/forms/ClientForm'
 import { Client } from '../types/database'
+import { ClientService } from '../services/api'
+import ClientForm from '../components/forms/ClientForm'
+import { Plus, Search, Filter, Eye, Trash2 } from 'lucide-react'
 
 const ClientsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [clients, setClients] = useState(mockClients)
+  const [clients, setClients] = useState<Client[]>([])
   const [isAddingClient, setIsAddingClient] = useState(false)
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const fetchedClients = await ClientService.fetchAll()
+      setClients(fetchedClients)
+    }
+
+    fetchClients()
+  }, [])
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value
     setSearchTerm(term)
-    
-    const filtered = mockClients.filter(client => 
-      client.name.toLowerCase().includes(term.toLowerCase()) ||
-      client.email?.toLowerCase().includes(term.toLowerCase())
-    )
-    
-    setClients(filtered)
   }
 
-  const handleAddClient = (newClient: Partial<Client>) => {
-    const clientToAdd = {
-      ...newClient,
-      id: clients.length + 1,
-      creationDate: new Date().toISOString().split('T')[0]
-    } as Client
-
-    setClients([...clients, clientToAdd])
+  const handleAddClient = async (newClient: Partial<Client>) => {
+    const clientToAdd = await ClientService.create(newClient)
+    if (clientToAdd) {
+      setClients([...clients, clientToAdd])
+    }
     setIsAddingClient(false)
   }
 
-  const handleDeleteClient = (clientId: number) => {
-    setClients(clients.filter(client => client.id !== clientId))
+  const handleDeleteClient = async (clientId: number) => {
+    const success = await ClientService.delete(clientId)
+    if (success) {
+      setClients(clients.filter(client => client.id !== clientId))
+    }
   }
 
   return (
