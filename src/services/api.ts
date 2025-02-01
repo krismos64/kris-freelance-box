@@ -30,7 +30,7 @@ const handleApiError = <T>(mockData: T[], errorMessage: string): T[] => {
 export const ClientService = {
   async fetchAll(): Promise<Client[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/clients`);
+      const response = await axios.get(`${API_BASE_URL}/api/clients`);
       return response.data;
     } catch (error) {
       return handleApiError(
@@ -42,7 +42,7 @@ export const ClientService = {
 
   async fetchById(id: number): Promise<Client | null> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/clients/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/api/clients/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Erreur lors de la récupération du client ${id}`);
@@ -52,7 +52,10 @@ export const ClientService = {
 
   async create(clientData: Partial<Client>): Promise<Client | null> {
     try {
-      const response = await axios.post(`${API_BASE_URL}/clients`, clientData);
+      const response = await axios.post(
+        `${API_BASE_URL}/api/clients`,
+        clientData
+      );
       return response.data;
     } catch (error) {
       console.error("Erreur lors de la création du client", error);
@@ -66,7 +69,7 @@ export const ClientService = {
   ): Promise<Client | null> {
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/clients/${id}`,
+        `${API_BASE_URL}/api/clients/${id}`,
         clientData
       );
       return response.data;
@@ -78,7 +81,7 @@ export const ClientService = {
 
   async delete(id: number): Promise<boolean> {
     try {
-      await axios.delete(`${API_BASE_URL}/clients/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/clients/${id}`);
       return true;
     } catch (error) {
       console.error(`Erreur lors de la suppression du client ${id}`, error);
@@ -91,7 +94,7 @@ export const ClientService = {
 export const InvoiceService = {
   async fetchAll(): Promise<Invoice[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/invoices`);
+      const response = await axios.get(`${API_BASE_URL}/api/invoices`);
       return response.data;
     } catch (error) {
       return handleApiError(
@@ -104,7 +107,7 @@ export const InvoiceService = {
   async fetchByClientId(clientId: number): Promise<Invoice[]> {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/invoices/client/${clientId}`
+        `${API_BASE_URL}/api/invoices/client/${clientId}`
       );
       return response.data;
     } catch (error) {
@@ -115,7 +118,7 @@ export const InvoiceService = {
   async create(invoiceData: Partial<Invoice>): Promise<Invoice | null> {
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/invoices`,
+        `${API_BASE_URL}/api/invoices`,
         invoiceData
       );
       return response.data;
@@ -130,7 +133,7 @@ export const InvoiceService = {
 export const QuoteService = {
   async fetchAll(): Promise<Quote[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/quotes`);
+      const response = await axios.get(`${API_BASE_URL}/api/quotes`);
       return response.data;
     } catch (error) {
       return handleApiError(
@@ -142,7 +145,10 @@ export const QuoteService = {
 
   async create(quoteData: Partial<Quote>): Promise<Quote | null> {
     try {
-      const response = await axios.post(`${API_BASE_URL}/quotes`, quoteData);
+      const response = await axios.post(
+        `${API_BASE_URL}/api/quotes`,
+        quoteData
+      );
       return response.data;
     } catch (error) {
       console.error("Erreur lors de la création du devis", error);
@@ -155,7 +161,7 @@ export const QuoteService = {
 export const TaskService = {
   async fetchAll(): Promise<Task[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/tasks`);
+      const response = await axios.get(`${API_BASE_URL}/api/tasks`);
       return response.data;
     } catch (error) {
       return handleApiError(
@@ -167,7 +173,7 @@ export const TaskService = {
 
   async create(taskData: Partial<Task>): Promise<Task | null> {
     try {
-      const response = await axios.post(`${API_BASE_URL}/tasks`, taskData);
+      const response = await axios.post(`${API_BASE_URL}/api/tasks`, taskData);
       return response.data;
     } catch (error) {
       console.error("Erreur lors de la création de la tâche", error);
@@ -177,7 +183,10 @@ export const TaskService = {
 
   async update(id: number, taskData: Partial<Task>): Promise<Task | null> {
     try {
-      const response = await axios.put(`${API_BASE_URL}/tasks/${id}`, taskData);
+      const response = await axios.put(
+        `${API_BASE_URL}/api/tasks/${id}`,
+        taskData
+      );
       return response.data;
     } catch (error) {
       console.error(`Erreur lors de la mise à jour de la tâche ${id}`, error);
@@ -190,7 +199,7 @@ export const TaskService = {
 export const DocumentService = {
   async fetchAll(): Promise<Document[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/documents`);
+      const response = await axios.get(`${API_BASE_URL}/api/documents`);
       return response.data;
     } catch (error) {
       return handleApiError(
@@ -210,7 +219,7 @@ export const DocumentService = {
       if (folderId) formData.append("folderId", folderId.toString());
 
       const response = await axios.post(
-        `${API_BASE_URL}/documents/upload`,
+        `${API_BASE_URL}/api/documents/upload`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -228,26 +237,13 @@ export const DocumentService = {
 export const PaymentService = {
   async fetchAll(): Promise<Payment[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/payments`);
+      const response = await axios.get(`${API_BASE_URL}/api/payments`);
       return response.data;
     } catch (error) {
       return handleApiError(
         mockPayments,
         "Erreur lors de la récupération des paiements"
       );
-    }
-  },
-
-  async create(paymentData: Partial<Payment>): Promise<Payment | null> {
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/payments`,
-        paymentData
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Erreur lors de la création du paiement", error);
-      return null;
     }
   },
 };

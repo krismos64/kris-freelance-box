@@ -6,6 +6,7 @@ import helmet from "helmet";
 import clientRoutes from "./routes/clientRoutes";
 import invoiceRoutes from "./routes/invoiceRoutes";
 import taskRoutes from "./routes/taskRoutes";
+import testRoutes from "./routes/testRoutes"; // Import the test routes
 import { testDatabaseConnection } from "./config/database";
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/api/clients", clientRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/test", testRoutes); // Use the test routes
 
 // Route de santé
 app.get("/api/health", async (req, res) => {

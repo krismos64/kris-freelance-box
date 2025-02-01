@@ -52,11 +52,36 @@ export const DatabaseServices = {
   },
 
   async createClient(clientData: any) {
-    const { name, email, phone, address } = clientData;
-    return executeQuery(
-      "INSERT INTO clients (name, email, phone, address, creationDate) VALUES (?, ?, ?, ?, ?)",
-      [name, email, phone, address, new Date()]
-    );
+    const {
+      name,
+      email,
+      phone,
+      address,
+      postalCode,
+      city,
+      imageUrl,
+      comments,
+    } = clientData;
+    try {
+      const [result] = await executeQuery(
+        "INSERT INTO clients (name, email, phone, address, postalCode, city, imageUrl, comments, creationDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          name,
+          email,
+          phone,
+          address,
+          postalCode,
+          city,
+          imageUrl,
+          comments,
+          new Date(),
+        ]
+      );
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du client:", error);
+      throw error;
+    }
   },
 
   // Factures
@@ -68,6 +93,49 @@ export const DatabaseServices = {
     return executeQuery("SELECT * FROM invoices WHERE clientId = ?", [
       clientId,
     ]);
+  },
+
+  async createInvoice(invoiceData: any) {
+    const { invoiceNumber, creationDate, dueDate, clientId, total, items } =
+      invoiceData;
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      // Créer la facture
+      const [invoiceResult] = await connection.execute(
+        "INSERT INTO invoices (invoiceNumber, creationDate, dueDate, clientId, total) VALUES (?, ?, ?, ?, ?)",
+        [invoiceNumber, creationDate, dueDate, clientId, total]
+      );
+
+      const invoiceId = (invoiceResult as any).insertId;
+
+      // Insérer les lignes de facture
+      if (items && items.length > 0) {
+        const itemQueries = items.map(() => "(?, ?, ?, ?)").join(", ");
+        const itemValues = items.flatMap((item: any) => [
+          invoiceId,
+          item.description,
+          item.quantity,
+          item.unitPrice,
+        ]);
+
+        await connection.execute(
+          `INSERT INTO invoice_items (invoiceId, description, quantity, unitPrice) VALUES ${itemQueries}`,
+          itemValues
+        );
+      }
+
+      await connection.commit();
+      return { id: invoiceId, message: "Facture créée avec succès" };
+    } catch (error) {
+      await connection.rollback();
+      console.error("Erreur lors de la création de la facture:", error);
+      throw error;
+    } finally {
+      connection.release();
+    }
   },
 
   // Devis

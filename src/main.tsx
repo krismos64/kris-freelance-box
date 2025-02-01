@@ -14,7 +14,25 @@ async function initializeApp() {
     );
     console.log("Connexion à l'API réussie:", response.data.status);
   } catch (error) {
-    console.error("Erreur de connexion à l'API:", error);
+    if (error instanceof Error) {
+      console.error("Erreur de connexion à l'API:", error.message);
+    } else {
+      console.error("Erreur de connexion à l'API:", String(error));
+    }
+  }
+
+  try {
+    // Test de connexion à la base de données
+    const dbResponse = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/test/db`
+    );
+    console.log("Connexion à la base de données:", dbResponse.data.isConnected);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Erreur de connexion à la base de données:", error.message);
+    } else {
+      console.error("Erreur de connexion à la base de données:", String(error));
+    }
   }
 
   createRoot(document.getElementById("root")!).render(
