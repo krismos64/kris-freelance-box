@@ -143,9 +143,70 @@ export const DatabaseServices = {
     return executeQuery("SELECT * FROM quotes");
   },
 
+  async getQuoteById(id: number) {
+    return executeQuery("SELECT * FROM quotes WHERE id = ?", [id]);
+  },
+
+  async createQuote(quoteData: any) {
+    const { quoteNumber, creationDate, validUntil, clientId, total, items } =
+      quoteData;
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      // Créer le devis
+      const [quoteResult] = await connection.execute(
+        "INSERT INTO quotes (quoteNumber, creationDate, validUntil, clientId, total) VALUES (?, ?, ?, ?, ?)",
+        [quoteNumber, creationDate, validUntil, clientId, total]
+      );
+
+      const quoteId = (quoteResult as any).insertId;
+
+      // Insérer les lignes de devis
+      if (items && items.length > 0) {
+        const itemQueries = items.map(() => "(?, ?, ?, ?)").join(", ");
+        const itemValues = items.flatMap((item: any) => [
+          quoteId,
+          item.description,
+          item.quantity,
+          item.unitPrice,
+        ]);
+
+        await connection.execute(
+          `INSERT INTO quote_items (quoteId, description, quantity, unitPrice) VALUES ${itemQueries}`,
+          itemValues
+        );
+      }
+
+      await connection.commit();
+      return { id: quoteId, message: "Devis créé avec succès" };
+    } catch (error) {
+      await connection.rollback();
+      console.error("Erreur lors de la création du devis:", error);
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+
   // Tâches
   async getAllTasks() {
     return executeQuery("SELECT * FROM tasks");
+  },
+
+  async createTask(taskData: any) {
+    const { name, description, completed } = taskData;
+    try {
+      const [result] = await executeQuery(
+        "INSERT INTO tasks (name, description, completed) VALUES (?, ?, ?)",
+        [name, description, completed]
+      );
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création de la tâche:", error);
+      throw error;
+    }
   },
 
   // Documents
@@ -153,9 +214,48 @@ export const DatabaseServices = {
     return executeQuery("SELECT * FROM documents");
   },
 
+  async uploadDocument(file: any, folderId: number) {
+    const filePath = `/documents/${file.originalname}`;
+    try {
+      const [result] = await executeQuery(
+        "INSERT INTO documents (name, file, folderId, uploadDate, type) VALUES (?, ?, ?, ?, ?)",
+        [
+          file.originalname,
+          filePath,
+          folderId,
+          new Date(),
+          file.mimetype.includes("pdf") ? "legal" : "other",
+        ]
+      );
+      return result;
+    } catch (error) {
+      console.error("Erreur lors du téléchargement du document:", error);
+      throw error;
+    }
+  },
+
   // Paiements
   async getAllPayments() {
     return executeQuery("SELECT * FROM payments");
+  },
+
+  async getPaymentById(id: number) {
+    return executeQuery("SELECT * FROM payments WHERE id = ?", [id]);
+  },
+
+  async createPayment(paymentData: any) {
+    const { invoiceId, amount, paymentDate, paymentMethod, status, reference } =
+      paymentData;
+    try {
+      const [result] = await executeQuery(
+        "INSERT INTO payments (invoiceId, amount, paymentDate, paymentMethod, status, reference) VALUES (?, ?, ?, ?, ?, ?)",
+        [invoiceId, amount, paymentDate, paymentMethod, status, reference]
+      );
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la création du paiement:", error);
+      throw error;
+    }
   },
 
   // Informations de l'entreprise
@@ -215,6 +315,32 @@ export const DatabaseServices = {
   // Revenus
   async getAllRevenues() {
     return executeQuery("SELECT * FROM revenues");
+  },
+
+  async updateRevenue(month: Date, amount: number) {
+    const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+    try {
+      const [rows] = await executeQuery<RowDataPacket[]>(
+        "SELECT * FROM revenues WHERE month = ?",
+        [monthStart]
+      );
+
+      if (rows.length > 0) {
+        // Si le mois existe, mettre à jour le montant
+        await executeQuery<ResultSetHeader>(
+          "UPDATE revenues SET amount = amount + ? WHERE month = ?",
+          [amount, monthStart]
+        );
+      } else {
+        // Si le mois n'existe pas, créer une nouvelle entrée
+        await executeQuery<ResultSetHeader>(
+          "INSERT INTO revenues (month, amount) VALUES (?, ?)",
+          [monthStart, amount]
+        );
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour des revenus:", error);
+    }
   },
 };
 

@@ -5,6 +5,8 @@ import {
   mockQuotes,
   mockTasks,
   mockDocuments,
+  mockFolders,
+  mockCompany,
   mockRevenues,
   mockPayments,
 } from "../mocks/mockData";
@@ -14,9 +16,10 @@ import {
   Quote,
   Task,
   Document,
-  Payment,
+  Folder as FolderType,
   Company,
   Revenue,
+  Payment,
 } from "../types/database";
 
 // Configuration de base
@@ -300,7 +303,7 @@ export const CompanyService = {
         "Erreur lors de la récupération des données de l'entreprise",
         error
       );
-      return null;
+      return mockCompany; // Retourner les données mockées en cas d'erreur
     }
   },
 

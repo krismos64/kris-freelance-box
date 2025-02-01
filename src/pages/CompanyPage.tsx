@@ -1,47 +1,77 @@
-import React, { useState } from 'react'
-import { Save, Edit, Upload } from 'lucide-react'
-import { mockCompany } from '../mocks/mockData'
-import { Company } from '../types/database'
+import React, { useState, useEffect } from "react";
+import { Save, Edit, Upload } from "lucide-react";
+import { CompanyService } from "../services/api";
+import { Company } from "../types/database";
 
 const CompanyPage: React.FC = () => {
-  const [isEditing, setIsEditing] = useState(false)
-  const [companyData, setCompanyData] = useState<Company>(mockCompany)
-  const [logoPreview, setLogoPreview] = useState(mockCompany.logoUrl)
+  const [companyData, setCompanyData] = useState<Company | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [logoPreview, setLogoPreview] = useState(companyData?.logoUrl || "");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setCompanyData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
+  useEffect(() => {
+    const fetchCompany = async () => {
+      const company = await CompanyService.fetchCompany();
+      if (company) {
+        setCompanyData(company);
+        setLogoPreview(company.logoUrl || "");
+      }
+    };
+
+    fetchCompany();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCompanyData((prev) => ({
+      ...prev!,
+      [name]: value,
+    }));
+  };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setLogoPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
-  const handleSave = () => {
-    // Logique de sauvegarde (à remplacer par une vraie mise à jour)
-    console.log('Entreprise mise à jour:', companyData)
-    setIsEditing(false)
-  }
+  const handleSave = async () => {
+    if (companyData) {
+      const success = await CompanyService.updateCompany(companyData);
+      if (success) {
+        console.log("Entreprise mise à jour avec succès");
+      } else {
+        console.error("Erreur lors de la mise à jour de l'entreprise");
+      }
+    }
+    setIsEditing(false);
+  };
+
+  if (!companyData) return <div>Chargement...</div>;
 
   return (
     <div className="p-6 bg-white/5 rounded-xl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Informations de l'Entreprise</h1>
-        <button 
+        <h1 className="text-3xl font-bold text-white">
+          Informations de l'Entreprise
+        </h1>
+        <button
           onClick={() => setIsEditing(!isEditing)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
         >
-          {isEditing ? 'Annuler' : <><Edit className="mr-2" /> Modifier</>}
+          {isEditing ? (
+            "Annuler"
+          ) : (
+            <>
+              <Edit className="mr-2" /> Modifier
+            </>
+          )}
         </button>
       </div>
 
@@ -49,21 +79,21 @@ const CompanyPage: React.FC = () => {
         {/* Informations Générales */}
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
           <div className="relative mb-6 flex justify-center">
-            <img 
-              src={logoPreview || 'https://via.placeholder.com/150'} 
-              alt="Logo de l'entreprise" 
+            <img
+              src={logoPreview || "https://via.placeholder.com/150"}
+              alt="Logo de l'entreprise"
               className="w-40 h-40 rounded-full object-cover"
             />
             {isEditing && (
               <div className="absolute bottom-0 right-1/4">
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   id="logo-upload"
                   className="hidden"
                   accept="image/*"
                   onChange={handleLogoUpload}
                 />
-                <label 
+                <label
                   htmlFor="logo-upload"
                   className="bg-blue-600 text-white p-2 rounded-full cursor-pointer"
                 >
@@ -76,7 +106,9 @@ const CompanyPage: React.FC = () => {
           {isEditing ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-white mb-2">Nom de l'Entreprise</label>
+                <label className="block text-white mb-2">
+                  Nom de l'Entreprise
+                </label>
                 <input
                   type="text"
                   name="companyName"
@@ -96,21 +128,25 @@ const CompanyPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-white mb-2">Secteur d'Activité</label>
+                <label className="block text-white mb-2">
+                  Secteur d'Activité
+                </label>
                 <input
                   type="text"
                   name="businessSector"
-                  value={companyData.businessSector}
+                  value={companyData.businessSector || ""}
                   onChange={handleChange}
                   className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
                 />
               </div>
               <div>
-                <label className="block text-white mb-2">Date de Création</label>
+                <label className="block text-white mb-2">
+                  Date de Création
+                </label>
                 <input
                   type="date"
                   name="foundedDate"
-                  value={companyData.foundedDate}
+                  value={companyData.foundedDate || ""}
                   onChange={handleChange}
                   className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
                 />
@@ -118,9 +154,14 @@ const CompanyPage: React.FC = () => {
             </div>
           ) : (
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-white">{companyData.companyName}</h2>
+              <h2 className="text-2xl font-bold text-white">
+                {companyData.companyName}
+              </h2>
               <p className="text-white/70">{companyData.businessSector}</p>
-              <p className="text-white/70">Créée le {new Date(companyData.foundedDate || '').toLocaleDateString()}</p>
+              <p className="text-white/70">
+                Créée le{" "}
+                {new Date(companyData.foundedDate || "").toLocaleDateString()}
+              </p>
             </div>
           )}
         </div>
@@ -186,7 +227,9 @@ const CompanyPage: React.FC = () => {
           ) : (
             <div className="space-y-2 text-white/80">
               <p>{companyData.address}</p>
-              <p>{companyData.postalCode} {companyData.city}</p>
+              <p>
+                {companyData.postalCode} {companyData.city}
+              </p>
               <p>{companyData.email}</p>
               <p>{companyData.phone}</p>
             </div>
@@ -205,7 +248,7 @@ const CompanyPage: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CompanyPage
+export default CompanyPage;
