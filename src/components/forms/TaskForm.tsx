@@ -1,42 +1,54 @@
-import React, { useState } from 'react'
-import { Save, X } from 'lucide-react'
-import { Task } from '../../types/database'
+import React, { useState } from "react";
+import { Save, X } from "lucide-react";
+import { Task } from "../../types/database";
+import { TaskService } from "../../services/api";
 
 interface TaskFormProps {
-  task?: Task
-  onSubmit: (task: Partial<Task>) => void
-  onCancel: () => void
+  task?: Task;
+  onSubmit: (task: Partial<Task>) => void;
+  onCancel: () => void;
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ 
-  task, 
-  onSubmit, 
-  onCancel 
-}) => {
+const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<Partial<Task>>({
-    name: task?.name || '',
-    description: task?.description || '',
-    completed: task?.completed || false
-  })
+    name: task?.name || "",
+    description: task?.description || "",
+    completed: task?.completed || false,
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' 
-        ? (e.target as HTMLInputElement).checked 
-        : value
-    }))
-  }
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (task) {
+        const updatedTask = await TaskService.update(task.id, formData);
+        if (updatedTask) {
+          onSubmit(updatedTask);
+        }
+      } else {
+        const newTask = await TaskService.create(formData);
+        if (newTask) {
+          onSubmit(newTask);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du formulaire:", error);
+    }
+  };
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
+    <form
+      onSubmit={handleSubmit}
       className="bg-white/10 backdrop-blur-md rounded-xl p-6 space-y-4"
     >
       <div>
@@ -50,7 +62,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
           className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
         />
       </div>
-      
+
       <div>
         <label className="block text-white mb-2">Description</label>
         <textarea
@@ -60,7 +72,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
           className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white h-24"
         />
       </div>
-      
+
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -71,7 +83,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
         />
         <label className="text-white">Tâche terminée</label>
       </div>
-      
+
       <div className="flex justify-end space-x-4 mt-6">
         <button
           type="button"
@@ -88,7 +100,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
         </button>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default TaskForm
+export default TaskForm;

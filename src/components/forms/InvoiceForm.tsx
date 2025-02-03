@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Save, X, Plus, Trash2 } from "lucide-react";
 import { Invoice } from "../../types/database";
-import { mockClients } from "../../mocks/mockData";
+import { InvoiceService } from "../../services/api";
 
 interface InvoiceFormProps {
   invoice?: Invoice;
@@ -32,7 +32,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
         .toISOString()
         .split("T")[0],
     clientId: invoice?.clientId || undefined,
-    total: invoice?.total || 0, // Assurez-vous d'avoir une valeur par défaut
+    total: invoice?.total || 0,
   });
 
   const [items, setItems] = useState<InvoiceItem[]>(
@@ -47,13 +47,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
-    // Conversion sécurisée pour les champs numériques
-    const processedValue = name === "clientId" ? Number(value) : value;
-
     setFormData((prev) => ({
       ...prev,
-      [name]: processedValue,
+      [name]: name === "clientId" ? Number(value) : value,
     }));
   };
 
@@ -76,7 +72,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     };
     setItems(newItems);
 
-    // Mettre à jour le total
     const total = newItems.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0
@@ -92,7 +87,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
 
-    // Mettre à jour le total
     const total = newItems.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0
@@ -100,14 +94,30 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     setFormData((prev) => ({ ...prev, total }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Soumettre avec les items
-    onSubmit({
-      ...formData,
-      items: items,
-    });
+    try {
+      if (invoice) {
+        const updatedInvoice = await InvoiceService.update(invoice.id, {
+          ...formData,
+          items: items,
+        });
+        if (updatedInvoice) {
+          onSubmit(updatedInvoice);
+        }
+      } else {
+        const newInvoice = await InvoiceService.create({
+          ...formData,
+          items: items,
+        });
+        if (newInvoice) {
+          onSubmit(newInvoice);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du formulaire:", error);
+    }
   };
 
   return (

@@ -12,7 +12,6 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Service pour les clients
 export const ClientService = {
   async fetchAll(): Promise<Client[]> {
     const response = await axios.get(`${API_BASE_URL}/clients`);
@@ -46,7 +45,6 @@ export const ClientService = {
   },
 };
 
-// Service pour les factures
 export const InvoiceService = {
   async fetchAll(): Promise<Invoice[]> {
     const response = await axios.get(`${API_BASE_URL}/invoices`);
@@ -64,9 +62,24 @@ export const InvoiceService = {
     const response = await axios.post(`${API_BASE_URL}/invoices`, invoiceData);
     return response.data;
   },
+
+  async update(
+    id: number,
+    invoiceData: Partial<Invoice>
+  ): Promise<Invoice | null> {
+    const response = await axios.put(
+      `${API_BASE_URL}/invoices/${id}`,
+      invoiceData
+    );
+    return response.data;
+  },
+
+  async delete(id: number): Promise<boolean> {
+    await axios.delete(`${API_BASE_URL}/invoices/${id}`);
+    return true;
+  },
 };
 
-// Service pour les devis
 export const QuoteService = {
   async fetchAll(): Promise<Quote[]> {
     const response = await axios.get(`${API_BASE_URL}/quotes`);
@@ -77,9 +90,18 @@ export const QuoteService = {
     const response = await axios.post(`${API_BASE_URL}/quotes`, quoteData);
     return response.data;
   },
+
+  async update(id: number, quoteData: Partial<Quote>): Promise<Quote | null> {
+    const response = await axios.put(`${API_BASE_URL}/quotes/${id}`, quoteData);
+    return response.data;
+  },
+
+  async delete(id: number): Promise<boolean> {
+    await axios.delete(`${API_BASE_URL}/quotes/${id}`);
+    return true;
+  },
 };
 
-// Service pour les tâches
 export const TaskService = {
   async fetchAll(): Promise<Task[]> {
     const response = await axios.get(`${API_BASE_URL}/tasks`);
@@ -95,9 +117,13 @@ export const TaskService = {
     const response = await axios.put(`${API_BASE_URL}/tasks/${id}`, taskData);
     return response.data;
   },
+
+  async delete(id: number): Promise<boolean> {
+    await axios.delete(`${API_BASE_URL}/tasks/${id}`);
+    return true;
+  },
 };
 
-// Service pour les documents
 export const DocumentService = {
   async fetchAll(): Promise<Document[]> {
     const response = await axios.get(`${API_BASE_URL}/documents`);
@@ -121,9 +147,32 @@ export const DocumentService = {
     );
     return response.data;
   },
+
+  async delete(id: number): Promise<boolean> {
+    await axios.delete(`${API_BASE_URL}/documents/${id}`);
+    return true;
+  },
 };
 
-// Service pour les paiements
+export const CompanyService = {
+  async fetchCompany(): Promise<Company | null> {
+    const response = await axios.get(`${API_BASE_URL}/company`);
+    return response.data;
+  },
+
+  async updateCompany(companyData: Partial<Company>): Promise<boolean> {
+    const response = await axios.put(`${API_BASE_URL}/company`, companyData);
+    return response.data.success;
+  },
+};
+
+export const RevenueService = {
+  async fetchAll(): Promise<Revenue[]> {
+    const response = await axios.get(`${API_BASE_URL}/revenues`);
+    return response.data;
+  },
+};
+
 export const PaymentService = {
   async fetchAll(): Promise<Payment[]> {
     const response = await axios.get(`${API_BASE_URL}/payments`);
@@ -149,26 +198,5 @@ export const PaymentService = {
   async delete(id: number): Promise<boolean> {
     await axios.delete(`${API_BASE_URL}/payments/${id}`);
     return true;
-  },
-};
-
-// Service pour les données de l'entreprise
-export const CompanyService = {
-  async fetchCompany(): Promise<Company | null> {
-    const response = await axios.get(`${API_BASE_URL}/company`);
-    return response.data;
-  },
-
-  async updateCompany(companyData: Partial<Company>): Promise<boolean> {
-    const response = await axios.put(`${API_BASE_URL}/company`, companyData);
-    return response.data.success;
-  },
-};
-
-// Service pour les revenus
-export const RevenueService = {
-  async fetchAll(): Promise<Revenue[]> {
-    const response = await axios.get(`${API_BASE_URL}/revenues`);
-    return response.data;
   },
 };

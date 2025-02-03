@@ -1,44 +1,61 @@
-import React, { useState } from 'react'
-import { Save, X } from 'lucide-react'
-import { Client } from '../../types/database'
+import React, { useState } from "react";
+import { Save, X } from "lucide-react";
+import { Client } from "../../types/database";
+import { ClientService } from "../../services/api";
 
 interface ClientFormProps {
-  client?: Client
-  onSubmit: (client: Partial<Client>) => void
-  onCancel: () => void
+  client?: Client;
+  onSubmit: (client: Partial<Client>) => void;
+  onCancel: () => void;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ 
-  client, 
-  onSubmit, 
-  onCancel 
+const ClientForm: React.FC<ClientFormProps> = ({
+  client,
+  onSubmit,
+  onCancel,
 }) => {
   const [formData, setFormData] = useState<Partial<Client>>({
-    name: client?.name || '',
-    email: client?.email || '',
-    phone: client?.phone || '',
-    address: client?.address || '',
-    postalCode: client?.postalCode || '',
-    city: client?.city || '',
-    comments: client?.comments || ''
-  })
+    name: client?.name || "",
+    email: client?.email || "",
+    phone: client?.phone || "",
+    address: client?.address || "",
+    postalCode: client?.postalCode || "",
+    city: client?.city || "",
+    comments: client?.comments || "",
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (client) {
+        const updatedClient = await ClientService.update(client.id, formData);
+        if (updatedClient) {
+          onSubmit(updatedClient);
+        }
+      } else {
+        const newClient = await ClientService.create(formData);
+        if (newClient) {
+          onSubmit(newClient);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du formulaire:", error);
+    }
+  };
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
+    <form
+      onSubmit={handleSubmit}
       className="bg-white/10 backdrop-blur-md rounded-xl p-6 space-y-4"
     >
       <div className="grid md:grid-cols-2 gap-4">
@@ -104,7 +121,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
           />
         </div>
       </div>
-      
+
       <div>
         <label className="block text-white mb-2">Commentaires</label>
         <textarea
@@ -114,7 +131,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
           className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white h-24"
         />
       </div>
-      
+
       <div className="flex justify-end space-x-4 mt-6">
         <button
           type="button"
@@ -131,7 +148,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </button>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default ClientForm
+export default ClientForm;
