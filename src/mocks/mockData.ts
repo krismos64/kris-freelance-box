@@ -178,9 +178,27 @@ export const mockCompany = {
 };
 
 export const mockRevenues: Revenue[] = [
-  { year: 2023, month: 1, amount: 1500, lastUpdated: "2023-01-31" },
-  { year: 2023, month: 2, amount: 2000, lastUpdated: "2023-02-28" },
-  { year: 2023, month: 3, amount: 1200, lastUpdated: "2023-03-31" },
+  {
+    year: 2023,
+    month: 1,
+    monthName: "Janvier",
+    amount: 1500,
+    lastUpdated: "2023-01-31",
+  },
+  {
+    year: 2023,
+    month: 2,
+    monthName: "Février",
+    amount: 2000,
+    lastUpdated: "2023-02-28",
+  },
+  {
+    year: 2023,
+    month: 3,
+    monthName: "Mars",
+    amount: 1200,
+    lastUpdated: "2023-03-31",
+  },
 ];
 
 export const mockPayments: Payment[] = [

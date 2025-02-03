@@ -1,86 +1,63 @@
-import React, { useState, useMemo } from "react";
-import {
-  DollarSign,
-  CreditCard,
-  CheckCircle,
-  Clock,
-  Search,
-  Filter,
-  Edit,
-  Save,
-  X,
-  Eye,
-} from "lucide-react";
-import { mockPayments, mockInvoices, mockClients } from "../mocks/mockData";
+import React, { useState, useEffect } from "react";
+import { Save, X, Plus, Trash2, Search, CreditCard, Eye } from "lucide-react";
+import { PaymentService } from "../services/api";
 import { Payment, Invoice, Client } from "../types/database";
-import PaymentForm from "../components/forms/PaymentForm";
 
-const PaymentStatusBadge: React.FC<{ status: Payment["status"] }> = ({
-  status,
-}) => {
-  const statusColors = {
-    payé: "bg-green-500",
-    partiel: "bg-yellow-500",
-    "en attente": "bg-red-500",
+interface PaymentStatusBadgeProps {
+  status: string;
+}
+
+const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ status }) => {
+  const getStatusColor = () => {
+    switch (status) {
+      case "payé":
+        return "bg-green-500";
+      case "partiel":
+        return "bg-yellow-500";
+      case "en attente":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
   };
 
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs text-white ${statusColors[status]}`}
+      className={`ml-3 px-2 py-1 rounded-full text-xs ${getStatusColor()} text-white`}
     >
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status}
     </span>
   );
 };
+import PaymentForm from "../components/forms/PaymentForm";
+import { mockPayments, mockInvoices, mockClients } from "../mocks/mockData";
 
 const PaymentsPage: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>(mockPayments);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<Payment["status"] | "tous">(
-    "tous"
-  );
   const [isAddingPayment, setIsAddingPayment] = useState(false);
   const [newPayment, setNewPayment] = useState<Partial<Payment>>({
     paymentMethod: "virement",
     status: "en attente",
   });
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
-  // Récupérer les informations de la facture et du client
-  const getInvoiceDetails = (invoiceId: number) => {
-    const invoice = mockInvoices.find((inv) => inv.id === invoiceId);
-    const client = invoice
-      ? mockClients.find((c) => c.id === invoice.clientId)
-      : null;
-    return { invoice, client };
-  };
+  useEffect(() => {
+    const fetchPayments = async () => {
+      const fetchedPayments = await PaymentService.fetchAll();
+      setPayments(fetchedPayments);
+    };
 
-  // Filtrage et recherche des paiements
-  const filteredPayments = useMemo(() => {
-    return payments.filter((payment) => {
-      const { invoice, client } = getInvoiceDetails(payment.invoiceId);
-      const matchesSearch =
-        invoice?.invoiceNumber
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.reference?.toLowerCase().includes(searchTerm.toLowerCase());
+    fetchPayments();
+  }, []);
 
-      const matchesStatus =
-        filterStatus === "tous" || payment.status === filterStatus;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [payments, searchTerm, filterStatus]);
-
-  // Ajouter un nouveau paiement
   const handleAddPayment = () => {
     setIsAddingPayment(true);
   };
 
-  const handleSavePayment = async (payment: Partial<Payment>) => {
-    if (payment.invoiceId && payment.amount) {
+  const handleSavePayment = async () => {
+    if (newPayment.invoiceId && newPayment.amount) {
       const paymentToAdd: Payment = {
-        ...payment,
+        ...newPayment,
         id: payments.length + 1,
         paymentDate: new Date().toISOString().split("T")[0],
       } as Payment;
@@ -90,7 +67,6 @@ const PaymentsPage: React.FC = () => {
     }
   };
 
-  // Supprimer un paiement
   const handleDeletePayment = (paymentId: number) => {
     setPayments(payments.filter((p) => p.id !== paymentId));
   };
@@ -119,20 +95,18 @@ const PaymentsPage: React.FC = () => {
               <input
                 type="text"
                 placeholder="Rechercher un paiement..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={""}
+                onChange={() => {}}
                 className="w-full bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2 pl-10"
               />
               <Search className="absolute left-3 top-3 text-gray-400" />
             </div>
             <select
-              value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as Payment["status"] | "tous")
-              }
+              value={""}
+              onChange={() => {}}
               className="bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2"
             >
-              <option value="tous">Tous les statuts</option>
+              <option value="">Tous les statuts</option>
               <option value="payé">Payé</option>
               <option value="partiel">Partiel</option>
               <option value="en attente">En Attente</option>
@@ -152,8 +126,13 @@ const PaymentsPage: React.FC = () => {
 
         {/* Liste des Paiements */}
         <div className="space-y-4">
-          {filteredPayments.map((payment) => {
-            const { invoice, client } = getInvoiceDetails(payment.invoiceId);
+          {payments.map((payment) => {
+            const invoice = mockInvoices.find(
+              (inv) => inv.id === payment.invoiceId
+            );
+            const client = invoice
+              ? mockClients.find((c) => c.id === invoice.clientId)
+              : null;
 
             return (
               <div

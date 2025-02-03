@@ -1,104 +1,107 @@
-import React, { useState, useEffect } from 'react'
-import { Search, X } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { 
-  mockClients, 
-  mockInvoices, 
-  mockQuotes, 
-  mockTasks, 
-  mockDocuments 
-} from '../mocks/mockData'
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Search, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { Client, Invoice, Quote, Task, Document } from "../types/database";
+import {
+  mockClients,
+  mockInvoices,
+  mockQuotes,
+  mockTasks,
+  mockDocuments,
+} from "../mocks/mockData";
 
 interface SearchResult {
-  type: 'client' | 'invoice' | 'quote' | 'task' | 'document'
-  id: number
-  title: string
-  description?: string
-  icon: string
+  type: "client" | "invoice" | "quote" | "task" | "document";
+  id: number;
+  title: string;
+  description?: string;
+  icon: string;
 }
 
 const SearchPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [searchTerm, setSearchTerm] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
 
   useEffect(() => {
     if (searchTerm.length < 2) {
-      setResults([])
-      return
+      setResults([]);
+      return;
     }
 
     const searchResults: SearchResult[] = [
       // Recherche dans les clients
       ...mockClients
-        .filter(client => 
-          client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          client.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        .filter(
+          (client) =>
+            client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            client.email?.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .map(client => ({
-          type: 'client',
+        .map((client) => ({
+          type: "client" as const,
           id: client.id,
           title: client.name,
           description: client.email,
-          icon: '👥'
+          icon: "👥",
         })),
 
       // Recherche dans les factures
       ...mockInvoices
-        .filter(invoice => 
+        .filter((invoice) =>
           invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .map(invoice => ({
-          type: 'invoice',
+        .map((invoice) => ({
+          type: "invoice" as const,
           id: invoice.id,
           title: invoice.invoiceNumber,
           description: `Total: ${invoice.total}€`,
-          icon: '📄'
+          icon: "📄",
         })),
 
       // Recherche dans les devis
       ...mockQuotes
-        .filter(quote => 
+        .filter((quote) =>
           quote.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .map(quote => ({
-          type: 'quote',
+        .map((quote) => ({
+          type: "quote" as const,
           id: quote.id,
           title: quote.quoteNumber,
           description: `Total: ${quote.total}€`,
-          icon: '📋'
+          icon: "📋",
         })),
 
       // Recherche dans les tâches
       ...mockTasks
-        .filter(task => 
-          task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        .filter(
+          (task) =>
+            task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            task.description?.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .map(task => ({
-          type: 'task',
+        .map((task) => ({
+          type: "task" as const,
           id: task.id,
           title: task.name,
           description: task.description,
-          icon: '✅'
+          icon: "✅",
         })),
 
       // Recherche dans les documents
       ...mockDocuments
-        .filter(doc => 
+        .filter((doc) =>
           doc.name.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .map(doc => ({
-          type: 'document',
+        .map((doc) => ({
+          type: "document" as const,
           id: doc.id,
           title: doc.name,
           description: `Type: ${doc.type}`,
-          icon: '📁'
-        }))
-    ]
+          icon: "📁",
+        })),
+    ];
 
-    setResults(searchResults)
-  }, [searchTerm])
+    setResults(searchResults);
+  }, [searchTerm]);
 
   const getResultLink = (result: SearchResult) => {
     const links = {
@@ -106,13 +109,13 @@ const SearchPage: React.FC = () => {
       invoice: `/invoices`,
       quote: `/quotes`,
       task: `/tasks`,
-      document: `/documents`
-    }
-    return links[result.type]
-  }
+      document: `/documents`,
+    };
+    return links[result.type];
+  };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -130,10 +133,7 @@ const SearchPage: React.FC = () => {
             border-none outline-none placeholder-white/50"
             autoFocus
           />
-          <Link 
-            to="/"
-            className="text-white/70 hover:text-white"
-          >
+          <Link to="/" className="text-white/70 hover:text-white">
             <X className="w-6 h-6" />
           </Link>
         </div>
@@ -141,7 +141,7 @@ const SearchPage: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto max-w-4xl mx-auto w-full p-6">
         {results.length > 0 ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -152,12 +152,9 @@ const SearchPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white/10 rounded-xl p-4 hover:bg-white/20 transition-all"
+                className="bg-white/10 backdrop-blur-md rounded-xl p-4 hover:bg-white/20 transition-all"
               >
-                <Link 
-                  to={getResultLink(result)}
-                  className="block"
-                >
+                <Link to={getResultLink(result)} className="block">
                   <div className="flex items-center mb-2">
                     <span className="text-3xl mr-4">{result.icon}</span>
                     <h3 className="text-lg font-bold text-white">
@@ -175,12 +172,14 @@ const SearchPage: React.FC = () => {
           </motion.div>
         ) : (
           <div className="text-center text-white/70 mt-20">
-            {searchTerm ? 'Aucun résultat trouvé' : 'Commencez à taper pour rechercher'}
+            {searchTerm
+              ? "Aucun résultat trouvé"
+              : "Commencez à taper pour rechercher"}
           </div>
         )}
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default SearchPage
+export default SearchPage;
