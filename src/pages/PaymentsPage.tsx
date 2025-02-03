@@ -34,7 +34,7 @@ const PaymentStatusBadge: React.FC<{ status: Payment["status"] }> = ({
 };
 
 const PaymentsPage: React.FC = () => {
-  const [payments, setPayments] = useState(mockPayments);
+  const [payments, setPayments] = useState<Payment[]>(mockPayments);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<Payment["status"] | "tous">(
     "tous"

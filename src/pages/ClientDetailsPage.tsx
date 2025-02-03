@@ -1,68 +1,77 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { Client } from '../types/database'
-import { ClientService } from '../services/api'
-import { Edit, Trash2, Upload, Save, ArrowLeft } from 'lucide-react'
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Client } from "../types/database";
+import { ClientService } from "../services/api";
+import { Edit, Trash2, Upload, Save, ArrowLeft } from "lucide-react";
 
 const ClientDetailsPage: React.FC = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [client, setClient] = useState<Client | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedClient, setEditedClient] = useState<Client | null>(null)
-  const [imagePreview, setImagePreview] = useState(client?.imageUrl)
+  const [client, setClient] = useState<Client | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedClient, setEditedClient] = useState<Partial<Client>>({});
+  const [imagePreview, setImagePreview] = useState(client?.imageUrl);
 
   useEffect(() => {
     const fetchClient = async () => {
       if (id) {
-        const fetchedClient = await ClientService.fetchById(Number(id))
-        setClient(fetchedClient)
-        setEditedClient(fetchedClient)
-        setImagePreview(fetchedClient?.imageUrl)
+        const fetchedClient = await ClientService.fetchById(Number(id));
+        setClient(fetchedClient);
+        setEditedClient(fetchedClient);
+        setImagePreview(fetchedClient?.imageUrl);
       }
-    }
+    };
 
-    fetchClient()
-  }, [id])
+    fetchClient();
+  }, [id]);
 
-  if (!client) return <div>Client non trouvé</div>
+  if (!client) return <div>Client non trouvé</div>;
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+        setEditedClient((prev) => ({
+          ...prev,
+          imageUrl: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSave = async () => {
-    if (editedClient) {
-      const updatedClient = await ClientService.update(editedClient.id, editedClient)
+    if (editedClient && id) {
+      const updatedClient = await ClientService.update(
+        Number(id),
+        editedClient
+      );
       if (updatedClient) {
-        setClient(updatedClient)
-        setIsEditing(false)
+        setClient(updatedClient);
+        setIsEditing(false);
       }
     }
-  }
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setEditedClient(prev => ({
-      ...prev!,
-      [name]: value
-    }))
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setEditedClient((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   return (
     <div className="p-6 bg-white/5 rounded-xl text-white">
       <div className="flex items-center mb-6">
-        <button 
-          onClick={() => navigate('/clients')} 
+        <button
+          onClick={() => navigate("/clients")}
           className="mr-4 hover:bg-white/10 p-2 rounded-full"
         >
           <ArrowLeft />
@@ -74,21 +83,21 @@ const ClientDetailsPage: React.FC = () => {
         {/* Informations Client */}
         <div className="md:col-span-1 bg-white/10 rounded-xl p-6">
           <div className="relative mb-6">
-            <img 
-              src={imagePreview || 'https://via.placeholder.com/150'} 
-              alt="Client" 
+            <img
+              src={imagePreview || "https://via.placeholder.com/150"}
+              alt="Client"
               className="w-40 h-40 rounded-full object-cover mx-auto mb-4"
             />
             {isEditing && (
               <>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   ref={fileInputRef}
                   onChange={handleImageUpload}
-                  className="hidden" 
+                  className="hidden"
                   accept="image/*"
                 />
-                <button 
+                <button
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 right-1/4 bg-blue-600 text-white p-2 rounded-full"
                 >
@@ -100,29 +109,29 @@ const ClientDetailsPage: React.FC = () => {
 
           {isEditing ? (
             <div className="space-y-4">
-              <input 
-                type="text" 
-                value={editedClient?.name} 
+              <input
+                type="text"
+                value={editedClient.name || ""}
                 onChange={handleChange}
                 name="name"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
-              <input 
-                type="email" 
-                value={editedClient?.email} 
+              <input
+                type="email"
+                value={editedClient.email || ""}
                 onChange={handleChange}
                 name="email"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
-              <input 
-                type="tel" 
-                value={editedClient?.phone} 
+              <input
+                type="tel"
+                value={editedClient.phone || ""}
                 onChange={handleChange}
                 name="phone"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
-              <textarea 
-                value={editedClient?.comments} 
+              <textarea
+                value={editedClient.comments || ""}
                 onChange={handleChange}
                 name="comments"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
@@ -140,22 +149,24 @@ const ClientDetailsPage: React.FC = () => {
 
           <div className="flex justify-between mt-6">
             {isEditing ? (
-              <button 
+              <button
                 onClick={handleSave}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center"
               >
                 <Save className="mr-2" /> Enregistrer
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => setIsEditing(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
               >
                 <Edit className="mr-2" /> Modifier
               </button>
             )}
-            <button 
-              onClick={() => ClientService.delete(client.id).then(() => navigate('/clients'))}
+            <button
+              onClick={() =>
+                ClientService.delete(client.id).then(() => navigate("/clients"))
+              }
               className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Trash2 className="mr-2" /> Supprimer
@@ -164,7 +175,7 @@ const ClientDetailsPage: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ClientDetailsPage
+export default ClientDetailsPage;

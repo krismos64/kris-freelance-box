@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 import { Save, X } from "lucide-react";
-import { PaymentService } from "../services/api";
-import { Payment, Invoice } from "../types/database";
-import { mockInvoices } from "../mocks/mockData";
 
 interface PaymentFormProps {
   onSubmit: (payment: Partial<Payment>) => void;

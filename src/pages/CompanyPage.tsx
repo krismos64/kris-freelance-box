@@ -37,6 +37,10 @@ const CompanyPage: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
+        setCompanyData((prev) => ({
+          ...prev!,
+          logoUrl: reader.result as string,
+        }));
       };
       reader.readAsDataURL(file);
     }
@@ -57,100 +61,105 @@ const CompanyPage: React.FC = () => {
   if (!companyData) return <div>Chargement...</div>;
 
   return (
-    <div className="p-6 bg-white/5 rounded-xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">
-          Informations de l'Entreprise
-        </h1>
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-        >
-          {isEditing ? (
-            "Annuler"
-          ) : (
-            <>
-              <Edit className="mr-2" /> Modifier
-            </>
-          )}
-        </button>
-      </div>
-
-      {isEditing ? (
-        <CompanyForm
-          company={companyData}
-          onSubmit={handleSave}
-          onCancel={() => setIsEditing(false)}
-        />
-      ) : (
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Informations Générales */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-            <div className="relative mb-6 flex justify-center">
-              <img
-                src={logoPreview || "https://via.placeholder.com/150"}
-                alt="Logo de l'entreprise"
-                className="w-40 h-40 rounded-full object-cover"
-              />
-              <div className="absolute bottom-0 right-1/4">
-                <input
-                  type="file"
-                  id="logo-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                />
-                <label
-                  htmlFor="logo-upload"
-                  className="bg-blue-600 text-white p-2 rounded-full cursor-pointer"
-                >
-                  <Upload size={20} />
-                </label>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-white mb-2">
-                  Nom de l'Entreprise
-                </label>
-                <p className="text-white/80">{companyData.companyName}</p>
-              </div>
-              <div>
-                <label className="block text-white mb-2">Numéro SIRET</label>
-                <p className="text-white/80">{companyData.siretNumber}</p>
-              </div>
-              <div>
-                <label className="block text-white mb-2">
-                  Secteur d'Activité
-                </label>
-                <p className="text-white/80">{companyData.businessSector}</p>
-              </div>
-              <div>
-                <label className="block text-white mb-2">
-                  Date de Création
-                </label>
-                <p className="text-white/80">
-                  {new Date(companyData.foundedDate || "").toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Coordonnées */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Coordonnées</h3>
-            <div className="space-y-2 text-white/80">
-              <p>{companyData.address}</p>
-              <p>
-                {companyData.postalCode} {companyData.city}
-              </p>
-              <p>{companyData.email}</p>
-              <p>{companyData.phone}</p>
-            </div>
-          </div>
+    <div className="p-6 bg-white/5 rounded-xl flex">
+      {/* Visionneuse de document */}
+      <div className="flex-1">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-white">
+            Informations de l'Entreprise
+          </h1>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+          >
+            {isEditing ? (
+              "Annuler"
+            ) : (
+              <>
+                <Edit className="mr-2" /> Modifier
+              </>
+            )}
+          </button>
         </div>
-      )}
+
+        {isEditing ? (
+          <CompanyForm
+            company={companyData}
+            onSubmit={handleSave}
+            onCancel={() => setIsEditing(false)}
+          />
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Informations Générales */}
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
+              <div className="relative mb-6 flex justify-center">
+                <img
+                  src={logoPreview || "https://via.placeholder.com/150"}
+                  alt="Logo de l'entreprise"
+                  className="w-40 h-40 rounded-full object-cover"
+                />
+                <div className="absolute bottom-0 right-1/4">
+                  <input
+                    type="file"
+                    id="logo-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                  />
+                  <label
+                    htmlFor="logo-upload"
+                    className="bg-blue-600 text-white p-2 rounded-full cursor-pointer"
+                  >
+                    <Upload size={20} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white mb-2">
+                    Nom de l'Entreprise
+                  </label>
+                  <p className="text-white/80">{companyData.companyName}</p>
+                </div>
+                <div>
+                  <label className="block text-white mb-2">Numéro SIRET</label>
+                  <p className="text-white/80">{companyData.siretNumber}</p>
+                </div>
+                <div>
+                  <label className="block text-white mb-2">
+                    Secteur d'Activité
+                  </label>
+                  <p className="text-white/80">{companyData.businessSector}</p>
+                </div>
+                <div>
+                  <label className="block text-white mb-2">
+                    Date de Création
+                  </label>
+                  <p className="text-white/80">
+                    {new Date(
+                      companyData.foundedDate || ""
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Coordonnées */}
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
+              <h3 className="text-xl font-bold text-white mb-4">Coordonnées</h3>
+              <div className="space-y-2 text-white/80">
+                <p>{companyData.address}</p>
+                <p>
+                  {companyData.postalCode} {companyData.city}
+                </p>
+                <p>{companyData.email}</p>
+                <p>{companyData.phone}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
