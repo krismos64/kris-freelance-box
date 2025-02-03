@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Client } from "../types/database";
+import { Plus, Search, Filter, Eye, Trash2 } from "lucide-react";
 import { ClientService } from "../services/api";
 import ClientForm from "../components/forms/ClientForm";
-import { Plus, Search, Filter, Eye, Trash2 } from "lucide-react";
+import { Client } from "../types/database";
 
 const ClientsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");

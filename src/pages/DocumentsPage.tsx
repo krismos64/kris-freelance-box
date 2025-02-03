@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   File,
   Folder as FolderIcon,
@@ -12,14 +12,14 @@ import {
   X,
   Eye,
 } from "lucide-react";
-import { mockDocuments, mockFolders } from "../mocks/mockData";
-import { Document, Folder as FolderType } from "../types/database";
+import { DocumentService } from "../services/api";
+import { Document, Folder } from "../types/database";
 import DocumentForm from "../components/forms/DocumentForm";
 import PDFViewer from "../components/PDFViewer";
 
 const DocumentsPage: React.FC = () => {
-  const [documents, setDocuments] = useState<Document[]>(mockDocuments);
-  const [folders, setFolders] = useState<FolderType[]>(mockFolders);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [isAddingDocument, setIsAddingDocument] = useState(false);
   const [isAddingFolder, setIsAddingFolder] = useState(false);
@@ -30,24 +30,27 @@ const DocumentsPage: React.FC = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filtrage des documents
-  const filteredDocuments = useMemo(() => {
-    let result = documents;
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      const fetchedDocuments = await DocumentService.fetchAll();
+      setDocuments(fetchedDocuments);
+    };
 
-    // Filtrage par dossier
-    if (selectedFolder !== null) {
-      result = result.filter((doc) => doc.folderId === selectedFolder);
-    }
+    const fetchFolders = async () => {
+      // Vous devrez ajouter une fonction pour récupérer les dossiers depuis l'API backend
+      // Par exemple, dans DocumentService :
+      // export const fetchFolders = async (): Promise<Folder[]> => {
+      //   const response = await axios.get(`${API_BASE_URL}/folders`);
+      //   return response.data;
+      // };
+      // Puis appeler cette fonction ici
+      // const fetchedFolders = await DocumentService.fetchFolders();
+      // setFolders(fetchedFolders);
+    };
 
-    // Filtrage par terme de recherche
-    if (searchTerm) {
-      result = result.filter((doc) =>
-        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return result;
-  }, [documents, selectedFolder, searchTerm]);
+    fetchDocuments();
+    fetchFolders();
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -82,7 +85,7 @@ const DocumentsPage: React.FC = () => {
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      const newFolder: FolderType = {
+      const newFolder: Folder = {
         id: folders.length + 1,
         name: newFolderName,
         description: "",
@@ -110,6 +113,12 @@ const DocumentsPage: React.FC = () => {
     );
     setEditingDocument(null);
   };
+
+  const filteredDocuments = documents.filter(
+    (doc) =>
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (selectedFolder === null || doc.folderId === selectedFolder)
+  );
 
   return (
     <div className="p-6 bg-white/5 rounded-xl flex">

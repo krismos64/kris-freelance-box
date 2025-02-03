@@ -1,17 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Search, Filter, Eye, Trash2, Download } from "lucide-react";
-import { mockInvoices } from "../mocks/mockData";
-import { mockClients } from "../mocks/mockData";
+import { InvoiceService } from "../services/api";
+import { Invoice } from "../types/database";
 import InvoiceForm from "../components/forms/InvoiceForm";
 import { pdfGenerator } from "../services/pdfGenerator";
 import PDFViewer from "../components/PDFViewer";
-import { Invoice } from "../types/database";
 
 const InvoicesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isAddingInvoice, setIsAddingInvoice] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      const fetchedInvoices = await InvoiceService.fetchAll();
+      setInvoices(fetchedInvoices);
+    };
+
+    fetchInvoices();
+  }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value;
@@ -38,6 +46,24 @@ const InvoicesPage: React.FC = () => {
   };
 
   const getClientName = (clientId: number) => {
+    // Vous devrez ajouter une fonction pour récupérer les clients depuis l'API backend
+    // Par exemple, dans ClientService :
+    // export const fetchAllClients = async (): Promise<Client[]> => {
+    //   const response = await axios.get(`${API_BASE_URL}/clients`);
+    //   return response.data;
+    // };
+
+    // Puis appeler cette fonction ici
+    // const clients = await ClientService.fetchAllClients();
+    // const client = clients.find((c) => c.id === clientId);
+    // return client ? client.name : "Client inconnu";
+
+    // Pour l'instant, nous utilisons des noms fictifs
+    const mockClients = [
+      { id: 1, name: "Client A" },
+      { id: 2, name: "Client B" },
+      { id: 3, name: "Client C" },
+    ];
     const client = mockClients.find((c) => c.id === clientId);
     return client ? client.name : "Client inconnu";
   };
@@ -55,7 +81,11 @@ const InvoicesPage: React.FC = () => {
       {selectedInvoice && (
         <PDFViewer
           document={selectedInvoice}
-          client={mockClients.find((c) => c.id === selectedInvoice.clientId)!}
+          client={{
+            id: selectedInvoice.clientId,
+            name: getClientName(selectedInvoice.clientId),
+            email: "",
+          }}
           type="invoice"
           onClose={() => setSelectedInvoice(null)}
         />
@@ -119,10 +149,18 @@ const InvoicesPage: React.FC = () => {
               </span>
               <button
                 onClick={() => {
-                  const client = mockClients.find(
-                    (c) => c.id === invoice.clientId
-                  );
-                  if (client) {
+                  const clientName = getClientName(invoice.clientId);
+                  if (clientName) {
+                    const client = {
+                      id: invoice.clientId,
+                      name: clientName,
+                      email: "",
+                      phone: "",
+                      address: "",
+                      city: "",
+                      postalCode: "",
+                      country: "",
+                    };
                     pdfGenerator.generateInvoicePDF(invoice, client);
                   }
                 }}

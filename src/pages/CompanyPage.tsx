@@ -64,10 +64,10 @@ const CompanyPage: React.FC = () => {
     <div className="p-6 bg-white/5 rounded-xl flex">
       {/* Visionneuse de document */}
       <div className="flex-1">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white">
             Informations de l'Entreprise
-          </h1>
+          </h2>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
