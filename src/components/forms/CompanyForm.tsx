@@ -20,7 +20,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: Partial<Company>) => ({
       ...prev,
       [name]: value,
     }));

@@ -5,7 +5,7 @@ import { ClientService } from "../services/api";
 import { Edit, Trash2, Upload, Save, ArrowLeft } from "lucide-react";
 
 const ClientDetailsPage: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -19,7 +19,7 @@ const ClientDetailsPage: React.FC = () => {
       if (id) {
         const fetchedClient = await ClientService.fetchById(Number(id));
         setClient(fetchedClient);
-        setEditedClient(fetchedClient);
+        setEditedClient(fetchedClient || {});
         setImagePreview(fetchedClient?.imageUrl);
       }
     };
@@ -61,7 +61,7 @@ const ClientDetailsPage: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setEditedClient((prev) => ({
+    setEditedClient((prev: Partial<Client>) => ({
       ...prev,
       [name]: value,
     }));

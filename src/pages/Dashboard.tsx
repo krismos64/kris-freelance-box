@@ -14,6 +14,7 @@ import {
   mockCompany,
 } from "../mocks/mockData";
 import { motion } from "framer-motion";
+import { Revenue } from "../types/database";
 
 const DashboardWidget: React.FC<{
   icon: React.ReactNode;
@@ -64,9 +65,7 @@ const DashboardWidget: React.FC<{
   );
 };
 
-const RevenueChart: React.FC<{ data: { month: string; amount: number }[] }> = ({
-  data,
-}) => {
+const RevenueChart: React.FC<{ data: Revenue[] }> = ({ data }) => {
   const maxAmount = Math.max(...data.map((item) => item.amount));
 
   return (
@@ -93,10 +92,10 @@ const RevenueChart: React.FC<{ data: { month: string; amount: number }[] }> = ({
           >
             <div
               className="bg-blue-500 w-10 hover:bg-blue-600 transition-colors rounded-t-lg"
-              title={`${item.month}: ${item.amount}€`}
+              title={`${item.monthName}: ${item.amount}€`}
             />
             <span className="text-white/70 mt-2 text-sm group-hover:text-white">
-              {item.month}
+              {item.monthName}
             </span>
           </motion.div>
         ))}

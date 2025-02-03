@@ -9,6 +9,18 @@ interface DocumentFormProps {
   onCancel: () => void;
 }
 
+interface DocumentItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+interface Document {
+  id?: number;
+  folderId: number;
+  fileName?: string;
+}
+
 const DocumentForm: React.FC<DocumentFormProps> = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<Partial<Document>>({
     folderId: mockFolders[0].id,
@@ -19,7 +31,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSubmit, onCancel }) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: Partial<Document>) => ({
       ...prev,
       [name]: value,
     }));
@@ -60,7 +72,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSubmit, onCancel }) => {
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           >
-            {mockFolders.map((folder) => (
+            {mockFolders.map((folder: Folder) => (
               <option key={folder.id} value={folder.id}>
                 {folder.name}
               </option>

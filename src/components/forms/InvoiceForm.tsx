@@ -3,6 +3,12 @@ import { Save, X, Plus, Trash2 } from "lucide-react";
 import { Invoice } from "../../types/database";
 import { InvoiceService } from "../../services/api";
 
+// Temporary mock data until real data is implemented
+const mockClients = [
+  { id: 1, name: "Client 1" },
+  { id: 2, name: "Client 2" },
+];
+
 interface InvoiceFormProps {
   invoice?: Invoice;
   onSubmit: (invoice: Partial<Invoice>) => void;
