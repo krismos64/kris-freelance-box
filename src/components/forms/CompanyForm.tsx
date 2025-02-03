@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Save, X } from "lucide-react";
-import { CompanyService } from "../services/api";
-import { Company } from "../types/database";
+import { CompanyService } from "../../services/api";
+import { Company } from "../../types/database";
 
 interface CompanyFormProps {
   company: Company;

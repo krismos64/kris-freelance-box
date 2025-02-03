@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Save, X, Plus, Trash2 } from "lucide-react";
-import { DocumentService } from "../services/api";
-import { Folder } from "../types/database";
-import { mockFolders } from "../mocks/mockData";
+import { DocumentService } from "../../services/api";
+import { Folder } from "../../types/database";
+import { mockFolders } from "../../mocks/mockData";
 
 interface DocumentFormProps {
   onSubmit: (document: Partial<Document>) => void;
