@@ -5,6 +5,7 @@ import {
   Quote,
   Task,
   Document,
+  Folder,
   Company,
   Revenue,
   Payment,
