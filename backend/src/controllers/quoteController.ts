@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { DatabaseServices } from "../config/database";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-export const getAllQuotes = async (req: Request, res: Response) => {
+export const getAllQuotes = async (_req: Request, res: Response) => {
   try {
     const quotes = await DatabaseServices.getAllQuotes();
     res.json(quotes);
@@ -12,16 +12,21 @@ export const getAllQuotes = async (req: Request, res: Response) => {
   }
 };
 
-export const getQuoteById = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const getQuoteById = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
     const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
-      "SELECT * FROM quotes WHERE id = ?",
+      `SELECT q.*, c.name as clientName 
+       FROM quotes q 
+       LEFT JOIN clients c ON q.clientId = c.id 
+       WHERE q.id = ?`,
       [id]
     );
+
     if (rows.length === 0) {
       return res.status(404).json({ error: "Devis non trouvé" });
     }
+
     res.json(rows[0]);
   } catch (error) {
     console.error("Erreur lors de la récupération du devis:", error);
@@ -29,18 +34,9 @@ export const getQuoteById = async (req: Request, res: Response) => {
   }
 };
 
-export const createQuote = async (req: Request, res: Response) => {
-  const { quoteNumber, creationDate, validUntil, clientId, total, items } = req.body;
-
+export const createQuote = async (_req: Request, res: Response) => {
   try {
-    const result = await DatabaseServices.createQuote({
-      quoteNumber,
-      creationDate,
-      validUntil,
-      clientId,
-      total,
-      items,
-    });
+    const result = await DatabaseServices.createQuote(_req.body);
     res.status(201).json(result);
   } catch (error) {
     console.error("Erreur lors de la création du devis:", error);
@@ -48,16 +44,19 @@ export const createQuote = async (req: Request, res: Response) => {
   }
 };
 
-export const updateQuote = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { quoteNumber, creationDate, validUntil, clientId, total, items } = req.body;
-
+export const updateQuote = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
     const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
-      `UPDATE quotes 
-      SET quoteNumber = ?, creationDate = ?, validUntil = ?, clientId = ?, total = ? 
+      `UPDATE quotes SET 
+        quoteNumber = ?, 
+        creationDate = ?, 
+        validUntil = ?, 
+        clientId = ?, 
+        total = ?, 
+        status = ?
       WHERE id = ?`,
-      [quoteNumber, creationDate, validUntil, clientId, total, id]
+      [...Object.values(_req.body), id]
     );
 
     if (result.affectedRows === 0) {
@@ -66,14 +65,13 @@ export const updateQuote = async (req: Request, res: Response) => {
 
     res.json({ message: "Devis mis à jour avec succès" });
   } catch (error) {
-    console.error(`Erreur lors de la mise à jour du devis ${id}`, error);
+    console.error("Erreur lors de la mise à jour du devis:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
 
-export const deleteQuote = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
+export const deleteQuote = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
     const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
       "DELETE FROM quotes WHERE id = ?",
@@ -86,7 +84,7 @@ export const deleteQuote = async (req: Request, res: Response) => {
 
     res.json({ message: "Devis supprimé avec succès" });
   } catch (error) {
-    console.error(`Erreur lors de la suppression du devis ${id}`, error);
+    console.error("Erreur lors de la suppression du devis:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 };

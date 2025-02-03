@@ -1,21 +1,21 @@
 import { Request, Response } from "express";
-import pool from "../config/database";
+import { DatabaseServices } from "../config/database";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-export const getAllClients = async (req: Request, res: Response) => {
+export const getAllClients = async (_req: Request, res: Response) => {
   try {
-    const [rows] = await pool.execute("SELECT * FROM clients");
-    res.json(rows);
+    const clients = await DatabaseServices.getAllClients();
+    res.json(clients);
   } catch (error) {
     console.error("Erreur lors de la récupération des clients:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
 
-export const getClientById = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const getClientById = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
       "SELECT * FROM clients WHERE id = ?",
       [id]
     );
@@ -29,49 +29,25 @@ export const getClientById = async (req: Request, res: Response) => {
   }
 };
 
-export const createClient = async (req: Request, res: Response) => {
-  const { name, email, phone, address, postalCode, city, imageUrl, comments } =
-    req.body;
-
+export const createClient = async (_req: Request, res: Response) => {
   try {
-    const [result] = await pool.execute<ResultSetHeader>(
-      `INSERT INTO clients 
-      (name, email, phone, address, postalCode, city, imageUrl, comments, creationDate) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        name,
-        email,
-        phone,
-        address,
-        postalCode,
-        city,
-        imageUrl,
-        comments,
-        new Date(),
-      ]
-    );
-    res.status(201).json({
-      id: result.insertId,
-      message: "Client créé avec succès",
-    });
+    const result = await DatabaseServices.createClient(_req.body);
+    res.status(201).json(result);
   } catch (error) {
     console.error("Erreur lors de la création du client:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
 
-export const updateClient = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { name, email, phone, address, postalCode, city, imageUrl, comments } =
-    req.body;
-
+export const updateClient = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
       `UPDATE clients 
       SET name = ?, email = ?, phone = ?, address = ?, 
-      postalCode = ?, city = ?, imageUrl = ?, comments = ? 
+          postalCode = ?, city = ?, imageUrl = ?, comments = ? 
       WHERE id = ?`,
-      [name, email, phone, address, postalCode, city, imageUrl, comments, id]
+      [...Object.values(_req.body), id]
     );
 
     if (result.affectedRows === 0) {
@@ -85,11 +61,10 @@ export const updateClient = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteClient = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
+export const deleteClient = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
       "DELETE FROM clients WHERE id = ?",
       [id]
     );

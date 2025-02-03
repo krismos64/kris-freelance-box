@@ -1,14 +1,8 @@
 import { Request, Response } from "express";
-import pool from "../config/database";
 import { DatabaseServices } from "../config/database";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-interface InvoiceItem {
-  description: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-export const getAllInvoices = async (req: Request, res: Response) => {
+export const getAllInvoices = async (_req: Request, res: Response) => {
   try {
     const invoices = await DatabaseServices.getAllInvoices();
     res.json(invoices);
@@ -18,13 +12,28 @@ export const getAllInvoices = async (req: Request, res: Response) => {
   }
 };
 
-export const getInvoicesByClientId = async (req: Request, res: Response) => {
-  const { clientId } = req.params;
+export const getInvoiceById = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
   try {
-    const invoices = await DatabaseServices.getInvoicesByClientId(
-      Number(clientId)
+    const invoice = await DatabaseServices.getInvoiceById(Number(id));
+    if (!invoice) {
+      return res.status(404).json({ error: "Facture non trouvée" });
+    }
+    res.json(invoice);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la facture:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+export const getInvoicesByClientId = async (_req: Request, res: Response) => {
+  const { clientId } = _req.params;
+  try {
+    const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
+      "SELECT * FROM invoices WHERE clientId = ?",
+      [clientId]
     );
-    res.json(invoices);
+    res.json(rows);
   } catch (error) {
     console.error(
       "Erreur lors de la récupération des factures du client:",
@@ -34,22 +43,57 @@ export const getInvoicesByClientId = async (req: Request, res: Response) => {
   }
 };
 
-export const createInvoice = async (req: Request, res: Response) => {
-  const { invoiceNumber, creationDate, dueDate, clientId, total, items } =
-    req.body;
-
+export const createInvoice = async (_req: Request, res: Response) => {
   try {
-    const result = await DatabaseServices.createInvoice({
-      invoiceNumber,
-      creationDate,
-      dueDate,
-      clientId,
-      total,
-      items,
-    });
+    const result = await DatabaseServices.createInvoice(_req.body);
     res.status(201).json(result);
   } catch (error) {
     console.error("Erreur lors de la création de la facture:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+export const updateInvoice = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
+  try {
+    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
+      `UPDATE invoices SET 
+        invoiceNumber = ?, 
+        creationDate = ?, 
+        dueDate = ?, 
+        clientId = ?, 
+        total = ?, 
+        status = ?
+      WHERE id = ?`,
+      [...Object.values(_req.body), id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Facture non trouvée" });
+    }
+
+    res.json({ message: "Facture mise à jour avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la facture:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+export const deleteInvoice = async (_req: Request, res: Response) => {
+  const { id } = _req.params;
+  try {
+    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
+      "DELETE FROM invoices WHERE id = ?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Facture non trouvée" });
+    }
+
+    res.json({ message: "Facture supprimée avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la facture:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 };

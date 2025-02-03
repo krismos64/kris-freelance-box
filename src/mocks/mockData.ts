@@ -162,11 +162,11 @@ export const mockFolders: Folder[] = [
   { id: 2, name: "Dossier B", description: "Description du dossier B" },
 ];
 
-export const mockCompany: Company = {
+export const mockCompany = {
   id: 1,
   companyName: "FreelanceBox SAS",
   siretNumber: "12345678901234",
-  logoUrl: "https://via.placeholder.com/150",
+  logoUrl: "https://placehold.co/150",
   address: "123 Rue des Freelances",
   postalCode: "75001",
   city: "Paris",
