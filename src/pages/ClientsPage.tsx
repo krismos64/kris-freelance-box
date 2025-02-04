@@ -12,30 +12,43 @@ const ClientsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchClients = async () => {
-      const fetchedClients = await ClientService.fetchAll();
-      setClients(fetchedClients);
+      try {
+        const fetchedClients = await ClientService.fetchAll();
+        setClients(fetchedClients);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la r\u00e9cup\u00e9ration des clients",
+          error
+        );
+      }
     };
-
     fetchClients();
   }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value;
-    setSearchTerm(term);
+    setSearchTerm(event.target.value);
   };
 
   const handleAddClient = async (newClient: Partial<Client>) => {
-    const clientToAdd = await ClientService.create(newClient);
-    if (clientToAdd) {
-      setClients([...clients, clientToAdd]);
+    try {
+      const clientToAdd = await ClientService.create(newClient);
+      if (clientToAdd) {
+        setClients([...clients, clientToAdd]);
+      }
+      setIsAddingClient(false);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du client", error);
     }
-    setIsAddingClient(false);
   };
 
   const handleDeleteClient = async (clientId: number) => {
-    const success = await ClientService.delete(clientId);
-    if (success) {
-      setClients(clients.filter((client) => client.id !== clientId));
+    try {
+      const success = await ClientService.delete(clientId);
+      if (success) {
+        setClients(clients.filter((client) => client.id !== clientId));
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du client", error);
     }
   };
 
@@ -49,14 +62,12 @@ const ClientsPage: React.FC = () => {
     <div className="p-6 bg-white/5 rounded-xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Mes Clients</h1>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setIsAddingClient(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-          >
-            <Plus className="mr-2" /> Nouveau Client
-          </button>
-        </div>
+        <button
+          onClick={() => setIsAddingClient(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+        >
+          <Plus className="mr-2" /> Nouveau Client
+        </button>
       </div>
 
       {isAddingClient && (

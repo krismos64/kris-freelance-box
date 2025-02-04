@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Search, Filter, Eye, Trash2, Download } from "lucide-react";
-import { QuoteService } from "../services/api";
-import { Quote } from "../types/database";
+import { QuoteService, ClientService } from "../services/api";
+import { Quote, Client } from "../types/database";
 import QuoteForm from "../components/forms/QuoteForm";
 import { pdfGenerator } from "../services/pdfGenerator";
 import PDFViewer from "../components/PDFViewer";
@@ -9,62 +9,52 @@ import PDFViewer from "../components/PDFViewer";
 const QuotesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [isAddingQuote, setIsAddingQuote] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
 
   useEffect(() => {
-    const fetchQuotes = async () => {
-      const fetchedQuotes = await QuoteService.fetchAll();
-      setQuotes(fetchedQuotes);
+    const fetchData = async () => {
+      try {
+        const [fetchedQuotes, fetchedClients] = await Promise.all([
+          QuoteService.fetchAll(),
+          ClientService.fetchAll(),
+        ]);
+        setQuotes(fetchedQuotes);
+        setClients(fetchedClients);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données", error);
+      }
     };
 
-    fetchQuotes();
+    fetchData();
   }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value;
-    setSearchTerm(term);
+    setSearchTerm(event.target.value);
   };
 
-  const handleAddQuote = (newQuote: Partial<Quote>) => {
-    const quoteToAdd = {
-      ...newQuote,
-      id: quotes.length + 1,
-      creationDate: new Date().toISOString().split("T")[0],
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      items: newQuote.items || [],
-    } as Quote;
-
-    setQuotes([...quotes, quoteToAdd]);
-    setIsAddingQuote(false);
+  const handleAddQuote = async (newQuote: Partial<Quote>) => {
+    try {
+      const createdQuote = await QuoteService.create(newQuote);
+      setQuotes([...quotes, createdQuote]);
+      setIsAddingQuote(false);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du devis", error);
+    }
   };
 
-  const handleDeleteQuote = (quoteId: number) => {
-    setQuotes(quotes.filter((quote) => quote.id !== quoteId));
+  const handleDeleteQuote = async (quoteId: number) => {
+    try {
+      await QuoteService.delete(quoteId);
+      setQuotes(quotes.filter((quote) => quote.id !== quoteId));
+    } catch (error) {
+      console.error("Erreur lors de la suppression du devis", error);
+    }
   };
 
   const getClientName = (clientId: number) => {
-    // Vous devrez ajouter une fonction pour récupérer les clients depuis l'API backend
-    // Par exemple, dans ClientService :
-    // export const fetchAllClients = async (): Promise<Client[]> => {
-    //   const response = await axios.get(`${API_BASE_URL}/clients`);
-    //   return response.data;
-    // };
-
-    // Puis appeler cette fonction ici
-    // const clients = await ClientService.fetchAllClients();
-    // const client = clients.find((c) => c.id === clientId);
-    // return client ? client.name : "Client inconnu";
-
-    // Pour l'instant, nous utilisons des noms fictifs
-    const mockClients = [
-      { id: 1, name: "Client A" },
-      { id: 2, name: "Client B" },
-      { id: 3, name: "Client C" },
-    ];
-    const client = mockClients.find((c) => c.id === clientId);
+    const client = clients.find((c) => c.id === clientId);
     return client ? client.name : "Client inconnu";
   };
 
@@ -84,7 +74,8 @@ const QuotesPage: React.FC = () => {
           client={{
             id: selectedQuote.clientId,
             name: getClientName(selectedQuote.clientId),
-            email: "",
+            email:
+              clients.find((c) => c.id === selectedQuote.clientId)?.email || "",
           }}
           type="quote"
           onClose={() => setSelectedQuote(null)}
@@ -93,14 +84,12 @@ const QuotesPage: React.FC = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Mes Devis</h1>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setIsAddingQuote(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-          >
-            <Plus className="mr-2" /> Nouveau Devis
-          </button>
-        </div>
+        <button
+          onClick={() => setIsAddingQuote(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+        >
+          <Plus className="mr-2" /> Nouveau Devis
+        </button>
       </div>
 
       {isAddingQuote && (
@@ -146,22 +135,12 @@ const QuotesPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <span className="text-blue-400 font-bold">{quote.total} €</span>
               <button
-                onClick={() => {
-                  const clientName = getClientName(quote.clientId);
-                  if (clientName) {
-                    const client = {
-                      id: quote.clientId,
-                      name: clientName,
-                      email: "",
-                      phone: "",
-                      address: "",
-                      city: "",
-                      postalCode: "",
-                      country: "",
-                    };
-                    pdfGenerator.generateQuotePDF(quote, client);
-                  }
-                }}
+                onClick={() =>
+                  pdfGenerator.generateQuotePDF(
+                    quote,
+                    clients.find((c) => c.id === quote.clientId) || {}
+                  )
+                }
                 className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
               >
                 <Download />
@@ -174,7 +153,7 @@ const QuotesPage: React.FC = () => {
               </button>
               <button
                 onClick={() => handleDeleteQuote(quote.id)}
-                className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
               >
                 <Trash2 />
               </button>

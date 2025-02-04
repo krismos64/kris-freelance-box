@@ -6,7 +6,6 @@ import {
   Trash2,
   Download,
   Search,
-  Filter,
   Edit,
   Save,
   X,
@@ -31,87 +30,92 @@ const DocumentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchDocuments = async () => {
-      const fetchedDocuments = await DocumentService.fetchAll();
-      setDocuments(fetchedDocuments);
+    const fetchDocumentsAndFolders = async () => {
+      try {
+        const [fetchedDocuments, fetchedFolders] = await Promise.all([
+          DocumentService.fetchAll(),
+          DocumentService.fetchFolders(),
+        ]);
+        setDocuments(fetchedDocuments);
+        setFolders(fetchedFolders);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la r\u00e9cup\u00e9ration des documents et dossiers",
+          error
+        );
+      }
     };
-
-    const fetchFolders = async () => {
-      // Vous devrez ajouter une fonction pour récupérer les dossiers depuis l'API backend
-      // Par exemple, dans DocumentService :
-      // export const fetchFolders = async (): Promise<Folder[]> => {
-      //   const response = await axios.get(`${API_BASE_URL}/folders`);
-      //   return response.data;
-      // };
-      // Puis appeler cette fonction ici
-      // const fetchedFolders = await DocumentService.fetchFolders();
-      // setFolders(fetchedFolders);
-    };
-
-    fetchDocuments();
-    fetchFolders();
+    fetchDocumentsAndFolders();
   }, []);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
-      const fileUrl = URL.createObjectURL(file);
-
-      const newDocument: Document = {
-        id: documents.length + 1,
-        name: file.name,
-        file: fileUrl,
-        folderId: selectedFolder || 1,
-        uploadDate: new Date().toISOString().split("T")[0],
-        type: file.type.includes("pdf") ? "legal" : "other",
-      };
-
-      setDocuments([...documents, newDocument]);
-      setIsAddingDocument(false);
+      try {
+        const uploadedDocument = await DocumentService.upload(
+          file,
+          selectedFolder
+        );
+        setDocuments([...documents, uploadedDocument]);
+        setIsAddingDocument(false);
+      } catch (error) {
+        console.error("Erreur lors du téléchargement du document", error);
+      }
     }
   };
 
   const downloadDocument = (doc: Document) => {
-    // Méthode de téléchargement pour tous les documents
-    const link = document.createElement("a");
-    link.href = doc.file.startsWith("/documents/")
-      ? doc.file
-      : URL.createObjectURL(new Blob([doc.file], { type: "application/pdf" }));
-    link.download = doc.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    DocumentService.download(doc);
   };
 
-  const handleCreateFolder = () => {
+  const handleCreateFolder = async () => {
     if (newFolderName.trim()) {
-      const newFolder: Folder = {
-        id: folders.length + 1,
-        name: newFolderName,
-        description: "",
-      };
-      setFolders([...folders, newFolder]);
-      setIsAddingFolder(false);
-      setNewFolderName("");
+      try {
+        const newFolder = await DocumentService.createFolder({
+          name: newFolderName,
+        });
+        setFolders([...folders, newFolder]);
+        setIsAddingFolder(false);
+        setNewFolderName("");
+      } catch (error) {
+        console.error("Erreur lors de la création du dossier", error);
+      }
     }
   };
 
-  const handleDeleteFolder = (folderId: number) => {
-    setFolders(folders.filter((folder) => folder.id !== folderId));
-    setDocuments(documents.filter((doc) => doc.folderId !== folderId));
+  const handleDeleteFolder = async (folderId: number) => {
+    try {
+      await DocumentService.deleteFolder(folderId);
+      setFolders(folders.filter((folder) => folder.id !== folderId));
+      setDocuments(documents.filter((doc) => doc.folderId !== folderId));
+    } catch (error) {
+      console.error("Erreur lors de la suppression du dossier", error);
+    }
   };
 
-  const handleDeleteDocument = (documentId: number) => {
-    setDocuments(documents.filter((doc) => doc.id !== documentId));
+  const handleDeleteDocument = async (documentId: number) => {
+    try {
+      await DocumentService.delete(documentId);
+      setDocuments(documents.filter((doc) => doc.id !== documentId));
+    } catch (error) {
+      console.error("Erreur lors de la suppression du document", error);
+    }
   };
 
-  const handleRenameDocument = (document: Document, newName: string) => {
-    setDocuments(
-      documents.map((doc) =>
-        doc.id === document.id ? { ...doc, name: newName } : doc
-      )
-    );
-    setEditingDocument(null);
+  const handleRenameDocument = async (document: Document, newName: string) => {
+    try {
+      const updatedDocument = await DocumentService.update(document.id, {
+        name: newName,
+      });
+      setDocuments(
+        documents.map((doc) => (doc.id === document.id ? updatedDocument : doc))
+      );
+      setEditingDocument(null);
+    } catch (error) {
+      console.error("Erreur lors de la mise \u00e0 jour du document", error);
+    }
   };
 
   const filteredDocuments = documents.filter(
@@ -122,7 +126,6 @@ const DocumentsPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-white/5 rounded-xl flex">
-      {/* Sidebar Dossiers */}
       <div className="w-64 bg-white/10 rounded-xl p-4 mr-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">Dossiers</h2>
@@ -134,7 +137,6 @@ const DocumentsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Formulaire de création de dossier */}
         {isAddingFolder && (
           <div className="mb-4 flex">
             <input
@@ -159,7 +161,6 @@ const DocumentsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Liste des dossiers */}
         <div className="space-y-2">
           <button
             onClick={() => setSelectedFolder(null)}
@@ -204,7 +205,6 @@ const DocumentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Liste des Documents */}
       <div className="flex-1">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-white">
@@ -238,7 +238,6 @@ const DocumentsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Liste des Documents */}
         <div className="space-y-4">
           {filteredDocuments.map((doc) => (
             <div
@@ -258,7 +257,7 @@ const DocumentsPage: React.FC = () => {
                   <div className="flex-grow">
                     <h3 className="text-white font-bold">{doc.name}</h3>
                     <p className="text-white/70 text-sm">
-                      Ajouté le {doc.uploadDate} dans{" "}
+                      Ajout\u00e9 le {doc.uploadDate} dans{" "}
                       {folders.find((f) => f.id === doc.folderId)?.name}
                     </p>
                   </div>
@@ -295,25 +294,9 @@ const DocumentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Visionneuse de document */}
       {selectedDocument && (
         <PDFViewer
-          document={{
-            id: selectedDocument.id,
-            total: 0,
-            invoiceNumber: selectedDocument.name,
-            creationDate:
-              selectedDocument.uploadDate || new Date().toISOString(),
-            dueDate: new Date().toISOString(),
-            clientId: 0,
-            items: [],
-          }}
-          client={{
-            id: 0,
-            name: "Document Professionnel",
-            email: "",
-          }}
-          type="invoice"
+          document={selectedDocument}
           onClose={() => setSelectedDocument(null)}
         />
       )}

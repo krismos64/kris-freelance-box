@@ -7,14 +7,21 @@ import CompanyForm from "../components/forms/CompanyForm";
 const CompanyPage: React.FC = () => {
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [logoPreview, setLogoPreview] = useState(companyData?.logoUrl || "");
+  const [logoPreview, setLogoPreview] = useState<string>("");
 
   useEffect(() => {
     const fetchCompany = async () => {
-      const company = await CompanyService.fetchCompany();
-      if (company) {
-        setCompanyData(company);
-        setLogoPreview(company.logoUrl || "");
+      try {
+        const company = await CompanyService.fetchCompany();
+        if (company) {
+          setCompanyData(company);
+          setLogoPreview(company.logoUrl || "");
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors de la r\u00e9cup\u00e9ration des informations de l'entreprise",
+          error
+        );
       }
     };
 
@@ -48,11 +55,15 @@ const CompanyPage: React.FC = () => {
 
   const handleSave = async () => {
     if (companyData) {
-      const success = await CompanyService.updateCompany(companyData);
-      if (success) {
-        console.log("Entreprise mise à jour avec succès");
-      } else {
-        console.error("Erreur lors de la mise à jour de l'entreprise");
+      try {
+        const success = await CompanyService.updateCompany(companyData);
+        if (success) {
+          console.log("Entreprise mise \u00e0 jour avec succ\u00e8s");
+        } else {
+          console.error("Erreur lors de la mise \u00e0 jour de l'entreprise");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la mise \u00e0 jour", error);
       }
     }
     setIsEditing(false);
@@ -62,7 +73,6 @@ const CompanyPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-white/5 rounded-xl flex">
-      {/* Visionneuse de document */}
       <div className="flex-1">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">
@@ -90,7 +100,6 @@ const CompanyPage: React.FC = () => {
           />
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Informations Générales */}
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
               <div className="relative mb-6 flex justify-center">
                 <img
@@ -123,18 +132,20 @@ const CompanyPage: React.FC = () => {
                   <p className="text-white/80">{companyData.companyName}</p>
                 </div>
                 <div>
-                  <label className="block text-white mb-2">Numéro SIRET</label>
+                  <label className="block text-white mb-2">
+                    Num\u00e9ro SIRET
+                  </label>
                   <p className="text-white/80">{companyData.siretNumber}</p>
                 </div>
                 <div>
                   <label className="block text-white mb-2">
-                    Secteur d'Activité
+                    Secteur d'Activit\u00e9
                   </label>
                   <p className="text-white/80">{companyData.businessSector}</p>
                 </div>
                 <div>
                   <label className="block text-white mb-2">
-                    Date de Création
+                    Date de Cr\u00e9ation
                   </label>
                   <p className="text-white/80">
                     {new Date(
@@ -145,9 +156,10 @@ const CompanyPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Coordonnées */}
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Coordonnées</h3>
+              <h3 className="text-xl font-bold text-white mb-4">
+                Coordonn\u00e9es
+              </h3>
               <div className="space-y-2 text-white/80">
                 <p>{companyData.address}</p>
                 <p>

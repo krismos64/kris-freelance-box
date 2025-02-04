@@ -11,193 +11,179 @@ import {
   Payment,
 } from "../types/database";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Création du client Axios global
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Gestionnaire d'erreurs global
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("Erreur API", error);
+    return Promise.reject(error);
+  }
+);
 
 export const ClientService = {
   async fetchAll(): Promise<Client[]> {
-    const response = await axios.get(`${API_BASE_URL}/clients`);
-    return response.data;
+    return (await apiClient.get("/clients")).data;
   },
 
-  async fetchById(id: number): Promise<Client | null> {
-    const response = await axios.get(`${API_BASE_URL}/clients/${id}`);
-    return response.data;
+  async fetchById(id: number): Promise<Client> {
+    return (await apiClient.get(`/clients/${id}`)).data;
   },
 
-  async create(clientData: Partial<Client>): Promise<Client | null> {
-    const response = await axios.post(`${API_BASE_URL}/clients`, clientData);
-    return response.data;
+  async create(clientData: Partial<Client>): Promise<Client> {
+    return (await apiClient.post("/clients", clientData)).data;
   },
 
-  async update(
-    id: number,
-    clientData: Partial<Client>
-  ): Promise<Client | null> {
-    const response = await axios.put(
-      `${API_BASE_URL}/clients/${id}`,
-      clientData
-    );
-    return response.data;
+  async update(id: number, clientData: Partial<Client>): Promise<Client> {
+    return (await apiClient.put(`/clients/${id}`, clientData)).data;
   },
 
-  async delete(id: number): Promise<boolean> {
-    await axios.delete(`${API_BASE_URL}/clients/${id}`);
-    return true;
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/clients/${id}`);
+  },
+
+  async search(query: string): Promise<Client[]> {
+    return (await apiClient.get(`/clients/search`, { params: { q: query } }))
+      .data;
   },
 };
 
 export const InvoiceService = {
   async fetchAll(): Promise<Invoice[]> {
-    const response = await axios.get(`${API_BASE_URL}/invoices`);
-    return response.data;
+    return (await apiClient.get("/invoices")).data;
   },
 
-  async fetchByClientId(clientId: number): Promise<Invoice[]> {
-    const response = await axios.get(
-      `${API_BASE_URL}/invoices/client/${clientId}`
-    );
-    return response.data;
+  async create(invoiceData: Partial<Invoice>): Promise<Invoice> {
+    return (await apiClient.post("/invoices", invoiceData)).data;
   },
 
-  async create(invoiceData: Partial<Invoice>): Promise<Invoice | null> {
-    const response = await axios.post(`${API_BASE_URL}/invoices`, invoiceData);
-    return response.data;
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/invoices/${id}`);
   },
 
-  async update(
-    id: number,
-    invoiceData: Partial<Invoice>
-  ): Promise<Invoice | null> {
-    const response = await axios.put(
-      `${API_BASE_URL}/invoices/${id}`,
-      invoiceData
-    );
-    return response.data;
-  },
-
-  async delete(id: number): Promise<boolean> {
-    await axios.delete(`${API_BASE_URL}/invoices/${id}`);
-    return true;
+  async search(query: string): Promise<Invoice[]> {
+    return (await apiClient.get(`/invoices/search`, { params: { q: query } }))
+      .data;
   },
 };
 
 export const QuoteService = {
   async fetchAll(): Promise<Quote[]> {
-    const response = await axios.get(`${API_BASE_URL}/quotes`);
-    return response.data;
+    return (await apiClient.get("/quotes")).data;
   },
 
-  async create(quoteData: Partial<Quote>): Promise<Quote | null> {
-    const response = await axios.post(`${API_BASE_URL}/quotes`, quoteData);
-    return response.data;
+  async create(quoteData: Partial<Quote>): Promise<Quote> {
+    return (await apiClient.post("/quotes", quoteData)).data;
   },
 
-  async update(id: number, quoteData: Partial<Quote>): Promise<Quote | null> {
-    const response = await axios.put(`${API_BASE_URL}/quotes/${id}`, quoteData);
-    return response.data;
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/quotes/${id}`);
   },
 
-  async delete(id: number): Promise<boolean> {
-    await axios.delete(`${API_BASE_URL}/quotes/${id}`);
-    return true;
+  async search(query: string): Promise<Quote[]> {
+    return (await apiClient.get(`/quotes/search`, { params: { q: query } }))
+      .data;
   },
 };
 
 export const TaskService = {
   async fetchAll(): Promise<Task[]> {
-    const response = await axios.get(`${API_BASE_URL}/tasks`);
-    return response.data;
+    return (await apiClient.get("/tasks")).data;
   },
 
-  async create(taskData: Partial<Task>): Promise<Task | null> {
-    const response = await axios.post(`${API_BASE_URL}/tasks`, taskData);
-    return response.data;
+  async create(taskData: Partial<Task>): Promise<Task> {
+    return (await apiClient.post("/tasks", taskData)).data;
   },
 
-  async update(id: number, taskData: Partial<Task>): Promise<Task | null> {
-    const response = await axios.put(`${API_BASE_URL}/tasks/${id}`, taskData);
-    return response.data;
+  async toggleCompletion(id: number): Promise<Task> {
+    return (await apiClient.put(`/tasks/${id}/toggle-completion`)).data;
   },
 
-  async delete(id: number): Promise<boolean> {
-    await axios.delete(`${API_BASE_URL}/tasks/${id}`);
-    return true;
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/tasks/${id}`);
+  },
+
+  async search(query: string): Promise<Task[]> {
+    return (await apiClient.get(`/tasks/search`, { params: { q: query } }))
+      .data;
   },
 };
 
 export const DocumentService = {
   async fetchAll(): Promise<Document[]> {
-    const response = await axios.get(`${API_BASE_URL}/documents`);
-    return response.data;
+    return (await apiClient.get("/documents")).data;
   },
 
-  async uploadDocument(
-    file: File,
-    folderId?: number
-  ): Promise<Document | null> {
+  async fetchFolders(): Promise<Folder[]> {
+    return (await apiClient.get("/folders")).data;
+  },
+
+  async upload(file: File, folderId?: number): Promise<Document> {
     const formData = new FormData();
     formData.append("document", file);
     if (folderId) formData.append("folderId", folderId.toString());
-
-    const response = await axios.post(
-      `${API_BASE_URL}/documents/upload`,
-      formData,
-      {
+    return (
+      await apiClient.post("/documents/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    return response.data;
+      })
+    ).data;
   },
 
-  async delete(id: number): Promise<boolean> {
-    await axios.delete(`${API_BASE_URL}/documents/${id}`);
-    return true;
-  },
-};
-
-export const CompanyService = {
-  async fetchCompany(): Promise<Company | null> {
-    const response = await axios.get(`${API_BASE_URL}/company`);
-    return response.data;
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/documents/${id}`);
   },
 
-  async updateCompany(companyData: Partial<Company>): Promise<boolean> {
-    const response = await axios.put(`${API_BASE_URL}/company`, companyData);
-    return response.data.success;
-  },
-};
-
-export const RevenueService = {
-  async fetchAll(): Promise<Revenue[]> {
-    const response = await axios.get(`${API_BASE_URL}/revenues`);
-    return response.data;
+  async search(query: string): Promise<Document[]> {
+    return (await apiClient.get(`/documents/search`, { params: { q: query } }))
+      .data;
   },
 };
 
 export const PaymentService = {
   async fetchAll(): Promise<Payment[]> {
-    const response = await axios.get(`${API_BASE_URL}/payments`);
-    return response.data;
+    return (await apiClient.get("/payments")).data;
   },
 
-  async create(paymentData: Partial<Payment>): Promise<Payment | null> {
-    const response = await axios.post(`${API_BASE_URL}/payments`, paymentData);
-    return response.data;
+  async create(paymentData: Partial<Payment>): Promise<Payment> {
+    return (await apiClient.post("/payments", paymentData)).data;
   },
 
-  async update(
-    id: number,
-    paymentData: Partial<Payment>
-  ): Promise<Payment | null> {
-    const response = await axios.put(
-      `${API_BASE_URL}/payments/${id}`,
-      paymentData
-    );
-    return response.data;
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/payments/${id}`);
+  },
+};
+
+export const DashboardService = {
+  async fetchRevenues(): Promise<Revenue[]> {
+    return (await apiClient.get("/dashboard/revenues")).data;
   },
 
-  async delete(id: number): Promise<boolean> {
-    await axios.delete(`${API_BASE_URL}/payments/${id}`);
-    return true;
+  async fetchClientStats(): Promise<ClientStats> {
+    return (await apiClient.get("/dashboard/clients")).data;
+  },
+
+  async fetchTaskStats(): Promise<TaskStats> {
+    return (await apiClient.get("/dashboard/tasks")).data;
+  },
+
+  async fetchInvoiceStats(): Promise<InvoiceStats> {
+    return (await apiClient.get("/dashboard/invoices")).data;
+  },
+};
+
+export const CompanyService = {
+  async fetchCompany(): Promise<Company> {
+    return (await apiClient.get("/company")).data;
+  },
+
+  async updateCompany(companyData: Partial<Company>): Promise<void> {
+    await apiClient.put("/company", companyData);
   },
 };

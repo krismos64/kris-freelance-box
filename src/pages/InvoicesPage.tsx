@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Search, Filter, Eye, Trash2, Download } from "lucide-react";
-import { InvoiceService } from "../services/api";
-import { Invoice } from "../types/database";
+import { InvoiceService, ClientService } from "../services/api";
+import { Invoice, Client } from "../types/database";
 import InvoiceForm from "../components/forms/InvoiceForm";
 import { pdfGenerator } from "../services/pdfGenerator";
 import PDFViewer from "../components/PDFViewer";
@@ -9,62 +9,52 @@ import PDFViewer from "../components/PDFViewer";
 const InvoicesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [isAddingInvoice, setIsAddingInvoice] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      const fetchedInvoices = await InvoiceService.fetchAll();
-      setInvoices(fetchedInvoices);
+    const fetchData = async () => {
+      try {
+        const [fetchedInvoices, fetchedClients] = await Promise.all([
+          InvoiceService.fetchAll(),
+          ClientService.fetchAll(),
+        ]);
+        setInvoices(fetchedInvoices);
+        setClients(fetchedClients);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données", error);
+      }
     };
 
-    fetchInvoices();
+    fetchData();
   }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value;
-    setSearchTerm(term);
+    setSearchTerm(event.target.value);
   };
 
-  const handleAddInvoice = (newInvoice: Partial<Invoice>) => {
-    const invoiceToAdd = {
-      ...newInvoice,
-      id: invoices.length + 1,
-      creationDate: new Date().toISOString().split("T")[0],
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      items: newInvoice.items || [],
-    } as Invoice;
-
-    setInvoices([...invoices, invoiceToAdd]);
-    setIsAddingInvoice(false);
+  const handleAddInvoice = async (newInvoice: Partial<Invoice>) => {
+    try {
+      const createdInvoice = await InvoiceService.create(newInvoice);
+      setInvoices([...invoices, createdInvoice]);
+      setIsAddingInvoice(false);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la facture", error);
+    }
   };
 
-  const handleDeleteInvoice = (invoiceId: number) => {
-    setInvoices(invoices.filter((invoice) => invoice.id !== invoiceId));
+  const handleDeleteInvoice = async (invoiceId: number) => {
+    try {
+      await InvoiceService.delete(invoiceId);
+      setInvoices(invoices.filter((invoice) => invoice.id !== invoiceId));
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la facture", error);
+    }
   };
 
   const getClientName = (clientId: number) => {
-    // Vous devrez ajouter une fonction pour récupérer les clients depuis l'API backend
-    // Par exemple, dans ClientService :
-    // export const fetchAllClients = async (): Promise<Client[]> => {
-    //   const response = await axios.get(`${API_BASE_URL}/clients`);
-    //   return response.data;
-    // };
-
-    // Puis appeler cette fonction ici
-    // const clients = await ClientService.fetchAllClients();
-    // const client = clients.find((c) => c.id === clientId);
-    // return client ? client.name : "Client inconnu";
-
-    // Pour l'instant, nous utilisons des noms fictifs
-    const mockClients = [
-      { id: 1, name: "Client A" },
-      { id: 2, name: "Client B" },
-      { id: 3, name: "Client C" },
-    ];
-    const client = mockClients.find((c) => c.id === clientId);
+    const client = clients.find((c) => c.id === clientId);
     return client ? client.name : "Client inconnu";
   };
 
@@ -84,7 +74,9 @@ const InvoicesPage: React.FC = () => {
           client={{
             id: selectedInvoice.clientId,
             name: getClientName(selectedInvoice.clientId),
-            email: "",
+            email:
+              clients.find((c) => c.id === selectedInvoice.clientId)?.email ||
+              "",
           }}
           type="invoice"
           onClose={() => setSelectedInvoice(null)}
@@ -93,14 +85,12 @@ const InvoicesPage: React.FC = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Mes Factures</h1>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setIsAddingInvoice(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-          >
-            <Plus className="mr-2" /> Nouvelle Facture
-          </button>
-        </div>
+        <button
+          onClick={() => setIsAddingInvoice(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+        >
+          <Plus className="mr-2" /> Nouvelle Facture
+        </button>
       </div>
 
       {isAddingInvoice && (
@@ -148,22 +138,12 @@ const InvoicesPage: React.FC = () => {
                 {invoice.total} €
               </span>
               <button
-                onClick={() => {
-                  const clientName = getClientName(invoice.clientId);
-                  if (clientName) {
-                    const client = {
-                      id: invoice.clientId,
-                      name: clientName,
-                      email: "",
-                      phone: "",
-                      address: "",
-                      city: "",
-                      postalCode: "",
-                      country: "",
-                    };
-                    pdfGenerator.generateInvoicePDF(invoice, client);
-                  }
-                }}
+                onClick={() =>
+                  pdfGenerator.generateInvoicePDF(
+                    invoice,
+                    clients.find((c) => c.id === invoice.clientId) || {}
+                  )
+                }
                 className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
               >
                 <Download />

@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Save, X, Plus, Trash2, Search, CreditCard, Eye } from "lucide-react";
-import { PaymentService } from "../services/api";
+import { PaymentService, InvoiceService, ClientService } from "../services/api";
 import { Payment, Invoice, Client } from "../types/database";
+import PaymentForm from "../components/forms/PaymentForm";
 
-interface PaymentStatusBadgeProps {
-  status: string;
-}
-
-const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ status }) => {
+const PaymentStatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const getStatusColor = () => {
     switch (status) {
       case "payé":
@@ -29,11 +26,11 @@ const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ status }) => {
     </span>
   );
 };
-import PaymentForm from "../components/forms/PaymentForm";
-import { mockPayments, mockInvoices, mockClients } from "../mocks/mockData";
 
 const PaymentsPage: React.FC = () => {
-  const [payments, setPayments] = useState<Payment[]>(mockPayments);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [isAddingPayment, setIsAddingPayment] = useState(false);
   const [newPayment, setNewPayment] = useState<Partial<Payment>>({
     paymentMethod: "virement",
@@ -42,43 +39,54 @@ const PaymentsPage: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
   useEffect(() => {
-    const fetchPayments = async () => {
-      const fetchedPayments = await PaymentService.fetchAll();
-      setPayments(fetchedPayments);
+    const fetchData = async () => {
+      try {
+        const [fetchedPayments, fetchedInvoices, fetchedClients] =
+          await Promise.all([
+            PaymentService.fetchAll(),
+            InvoiceService.fetchAll(),
+            ClientService.fetchAll(),
+          ]);
+        setPayments(fetchedPayments);
+        setInvoices(fetchedInvoices);
+        setClients(fetchedClients);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données", error);
+      }
     };
 
-    fetchPayments();
+    fetchData();
   }, []);
 
-  const handleAddPayment = () => {
-    setIsAddingPayment(true);
-  };
-
   const handleSavePayment = async () => {
-    if (newPayment.invoiceId && newPayment.amount) {
-      const paymentToAdd: Payment = {
-        ...newPayment,
-        id: payments.length + 1,
-        paymentDate: new Date().toISOString().split("T")[0],
-      } as Payment;
-
-      setPayments([...payments, paymentToAdd]);
-      setIsAddingPayment(false);
+    try {
+      if (newPayment.invoiceId && newPayment.amount) {
+        const createdPayment = await PaymentService.create(newPayment);
+        setPayments([...payments, createdPayment]);
+        setIsAddingPayment(false);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du paiement", error);
     }
   };
 
-  const handleDeletePayment = (paymentId: number) => {
-    setPayments(payments.filter((p) => p.id !== paymentId));
+  const handleDeletePayment = async (paymentId: number) => {
+    try {
+      await PaymentService.delete(paymentId);
+      setPayments(payments.filter((p) => p.id !== paymentId));
+    } catch (error) {
+      console.error("Erreur lors de la suppression du paiement", error);
+    }
   };
 
   return (
     <div className="p-6 bg-white/5 rounded-xl flex">
-      {/* Sidebar Dossiers */}
+      {/* Sidebar Paiements */}
       <div className="w-64 bg-white/10 rounded-xl p-4 mr-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">Paiements</h2>
           <button
-            onClick={handleAddPayment}
+            onClick={() => setIsAddingPayment(true)}
             className="text-white hover:text-blue-400"
           >
             <Plus />
@@ -86,7 +94,7 @@ const PaymentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Liste des Documents */}
+      {/* Liste des Paiements */}
       <div className="flex-1">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-white">Suivi des Paiements</h1>
@@ -95,17 +103,11 @@ const PaymentsPage: React.FC = () => {
               <input
                 type="text"
                 placeholder="Rechercher un paiement..."
-                value={""}
-                onChange={() => {}}
                 className="w-full bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2 pl-10"
               />
               <Search className="absolute left-3 top-3 text-gray-400" />
             </div>
-            <select
-              value={""}
-              onChange={() => {}}
-              className="bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2"
-            >
+            <select className="bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2">
               <option value="">Tous les statuts</option>
               <option value="payé">Payé</option>
               <option value="partiel">Partiel</option>
@@ -127,11 +129,11 @@ const PaymentsPage: React.FC = () => {
         {/* Liste des Paiements */}
         <div className="space-y-4">
           {payments.map((payment) => {
-            const invoice = mockInvoices.find(
+            const invoice = invoices.find(
               (inv) => inv.id === payment.invoiceId
             );
             const client = invoice
-              ? mockClients.find((c) => c.id === invoice.clientId)
+              ? clients.find((c) => c.id === invoice.clientId)
               : null;
 
             return (
@@ -147,7 +149,9 @@ const PaymentsPage: React.FC = () => {
                     </h3>
                     <PaymentStatusBadge status={payment.status} />
                   </div>
-                  <p className="text-white/70">Client: {client?.name}</p>
+                  <p className="text-white/70">
+                    Client: {client?.name || "Client inconnu"}
+                  </p>
                   <p className="text-white/70">
                     Référence: {payment.reference || "N/A"}
                   </p>

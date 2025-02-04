@@ -12,22 +12,30 @@ const ClientDetailsPage: React.FC = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedClient, setEditedClient] = useState<Partial<Client>>({});
-  const [imagePreview, setImagePreview] = useState(client?.imageUrl);
+  const [imagePreview, setImagePreview] = useState<string | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     const fetchClient = async () => {
       if (id) {
-        const fetchedClient = await ClientService.fetchById(Number(id));
-        setClient(fetchedClient);
-        setEditedClient(fetchedClient || {});
-        setImagePreview(fetchedClient?.imageUrl);
+        try {
+          const fetchedClient = await ClientService.fetchById(Number(id));
+          setClient(fetchedClient);
+          setEditedClient(fetchedClient || {});
+          setImagePreview(fetchedClient?.imageUrl);
+        } catch (error) {
+          console.error(
+            "Erreur lors de la r\u00e9cup\u00e9ration du client",
+            error
+          );
+        }
       }
     };
-
     fetchClient();
   }, [id]);
 
-  if (!client) return <div>Client non trouvé</div>;
+  if (!client) return <div>Client non trouv\u00e9</div>;
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -46,13 +54,17 @@ const ClientDetailsPage: React.FC = () => {
 
   const handleSave = async () => {
     if (editedClient && id) {
-      const updatedClient = await ClientService.update(
-        Number(id),
-        editedClient
-      );
-      if (updatedClient) {
-        setClient(updatedClient);
-        setIsEditing(false);
+      try {
+        const updatedClient = await ClientService.update(
+          Number(id),
+          editedClient
+        );
+        if (updatedClient) {
+          setClient(updatedClient);
+          setIsEditing(false);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la mise \u00e0 jour du client", error);
       }
     }
   };
@@ -76,11 +88,12 @@ const ClientDetailsPage: React.FC = () => {
         >
           <ArrowLeft />
         </button>
-        <h1 className="text-3xl font-bold text-white">Détails du Client</h1>
+        <h1 className="text-3xl font-bold text-white">
+          D\u00e9tails du Client
+        </h1>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Informations Client */}
         <div className="md:col-span-1 bg-white/10 rounded-xl p-6">
           <div className="relative mb-6">
             <img

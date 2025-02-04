@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { Client, Invoice, Quote, Task, Document } from "../types/database";
 import {
-  mockClients,
-  mockInvoices,
-  mockQuotes,
-  mockTasks,
-  mockDocuments,
-} from "../mocks/mockData";
+  ClientService,
+  InvoiceService,
+  QuoteService,
+  TaskService,
+  DocumentService,
+} from "../services/api";
+import { Client, Invoice, Quote, Task, Document } from "../types/database";
 
 interface SearchResult {
   type: "client" | "invoice" | "quote" | "task" | "document";
@@ -29,87 +29,81 @@ const SearchPage: React.FC = () => {
       return;
     }
 
-    const searchResults: SearchResult[] = [
-      // Recherche dans les clients
-      ...mockClients
-        .filter(
-          (client) =>
-            client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.email?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((client) => ({
-          type: "client" as const,
-          id: client.id,
-          title: client.name,
-          description: client.email,
-          icon: "👥",
-        })),
+    const fetchResults = async () => {
+      try {
+        const [clients, invoices, quotes, tasks, documents] = await Promise.all(
+          [
+            ClientService.search(searchTerm),
+            InvoiceService.search(searchTerm),
+            QuoteService.search(searchTerm),
+            TaskService.search(searchTerm),
+            DocumentService.search(searchTerm),
+          ]
+        );
 
-      // Recherche dans les factures
-      ...mockInvoices
-        .filter((invoice) =>
-          invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((invoice) => ({
-          type: "invoice" as const,
-          id: invoice.id,
-          title: invoice.invoiceNumber,
-          description: `Total: ${invoice.total}€`,
-          icon: "📄",
-        })),
+        const searchResults: SearchResult[] = [
+          // Clients
+          ...clients.map((client) => ({
+            type: "client" as const,
+            id: client.id,
+            title: client.name,
+            description: client.email,
+            icon: "👥",
+          })),
 
-      // Recherche dans les devis
-      ...mockQuotes
-        .filter((quote) =>
-          quote.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((quote) => ({
-          type: "quote" as const,
-          id: quote.id,
-          title: quote.quoteNumber,
-          description: `Total: ${quote.total}€`,
-          icon: "📋",
-        })),
+          // Invoices
+          ...invoices.map((invoice) => ({
+            type: "invoice" as const,
+            id: invoice.id,
+            title: invoice.invoiceNumber,
+            description: `Total: ${invoice.total}€`,
+            icon: "📄",
+          })),
 
-      // Recherche dans les tâches
-      ...mockTasks
-        .filter(
-          (task) =>
-            task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.description?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((task) => ({
-          type: "task" as const,
-          id: task.id,
-          title: task.name,
-          description: task.description,
-          icon: "✅",
-        })),
+          // Quotes
+          ...quotes.map((quote) => ({
+            type: "quote" as const,
+            id: quote.id,
+            title: quote.quoteNumber,
+            description: `Total: ${quote.total}€`,
+            icon: "📋",
+          })),
 
-      // Recherche dans les documents
-      ...mockDocuments
-        .filter((doc) =>
-          doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((doc) => ({
-          type: "document" as const,
-          id: doc.id,
-          title: doc.name,
-          description: `Type: ${doc.type}`,
-          icon: "📁",
-        })),
-    ];
+          // Tasks
+          ...tasks.map((task) => ({
+            type: "task" as const,
+            id: task.id,
+            title: task.name,
+            description: task.description,
+            icon: "✅",
+          })),
 
-    setResults(searchResults);
+          // Documents
+          ...documents.map((doc) => ({
+            type: "document" as const,
+            id: doc.id,
+            title: doc.name,
+            description: `Type: ${doc.type}`,
+            icon: "📁",
+          })),
+        ];
+
+        setResults(searchResults);
+      } catch (error) {
+        console.error("Erreur lors de la recherche", error);
+      }
+    };
+
+    fetchResults();
   }, [searchTerm]);
 
   const getResultLink = (result: SearchResult) => {
     const links = {
       client: `/clients/${result.id}`,
-      invoice: `/invoices`,
-      quote: `/quotes`,
-      task: `/tasks`,
-      document: `/documents`,
+      invoice: `/invoices/${result.id}`,
+      quote: `/quotes/${result.id}`,
+      task: `/tasks/${result.id}`,
+      document: `/documents/${result.id}`,
     };
     return links[result.type];
   };
@@ -129,8 +123,7 @@ const SearchPage: React.FC = () => {
             placeholder="Rechercher dans FreelanceBox..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 bg-transparent text-white text-xl 
-            border-none outline-none placeholder-white/50"
+            className="flex-1 bg-transparent text-white text-xl border-none outline-none placeholder-white/50"
             autoFocus
           />
           <Link to="/" className="text-white/70 hover:text-white">

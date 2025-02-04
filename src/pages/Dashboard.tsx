@@ -7,14 +7,9 @@ import {
   TrendingDown,
   DollarSign,
 } from "lucide-react";
-import {
-  mockClients,
-  mockTasks,
-  mockRevenues,
-  mockCompany,
-} from "../mocks/mockData";
+import { DashboardService } from "../services/api";
+import { Revenue, ClientStats, TaskStats } from "../types/database";
 import { motion } from "framer-motion";
-import { Revenue } from "../types/database";
 
 const DashboardWidget: React.FC<{
   icon: React.ReactNode;
@@ -111,26 +106,45 @@ const Dashboard: React.FC = () => {
     taskCount: 0,
     revenueTrend: 0,
   });
+  const [revenues, setRevenues] = useState<Revenue[]>([]);
 
   useEffect(() => {
-    const totalRevenue = mockRevenues.reduce((sum, rev) => sum + rev.amount, 0);
-    const clientCount = mockClients.length;
-    const taskCount = mockTasks.filter((task) => !task.completed).length;
+    const fetchDashboardData = async () => {
+      try {
+        const [revenueData, clientData, taskData] = await Promise.all([
+          DashboardService.fetchRevenues(),
+          DashboardService.fetchClientStats(),
+          DashboardService.fetchTaskStats(),
+        ]);
 
-    const revenueTrend =
-      mockRevenues.length > 1
-        ? ((mockRevenues[mockRevenues.length - 1].amount -
-            mockRevenues[0].amount) /
-            mockRevenues[0].amount) *
-          100
-        : 0;
+        const totalRevenue = revenueData.reduce(
+          (sum: number, rev: Revenue) => sum + rev.amount,
+          0
+        );
+        const revenueTrend =
+          revenueData.length > 1
+            ? ((revenueData[revenueData.length - 1].amount -
+                revenueData[0].amount) /
+                revenueData[0].amount) *
+              100
+            : 0;
 
-    setStats({
-      totalRevenue,
-      clientCount,
-      taskCount,
-      revenueTrend,
-    });
+        setStats({
+          totalRevenue,
+          clientCount: clientData.count,
+          taskCount: taskData.incompleteTasks,
+          revenueTrend,
+        });
+        setRevenues(revenueData);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la r\u00e9cup\u00e9ration des donn\u00e9es du tableau de bord",
+          error
+        );
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   return (
@@ -141,15 +155,12 @@ const Dashboard: React.FC = () => {
         className="flex items-center mb-8 space-x-6"
       >
         <img
-          src={mockCompany.logoUrl}
+          src="/logo.png"
           alt="Logo FreelanceBox"
           className="w-20 h-20 rounded-full object-cover border-4 border-blue-500 bg-white"
         />
         <div>
-          <h1 className="text-4xl font-bold text-white">
-            {mockCompany.companyName}
-          </h1>
-          <p className="text-white/70">{mockCompany.businessSector}</p>
+          <h1 className="text-4xl font-bold text-white">Tableau de Bord</h1>
         </div>
       </motion.div>
 
@@ -169,14 +180,14 @@ const Dashboard: React.FC = () => {
         />
         <DashboardWidget
           icon={<CheckSquare />}
-          title="Tâches en Cours"
+          title="T\u00e2ches en Cours"
           value={stats.taskCount}
           delay={0.3}
         />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <RevenueChart data={mockRevenues} />
+        <RevenueChart data={revenues} />
 
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -184,31 +195,10 @@ const Dashboard: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="bg-white/10 backdrop-blur-md rounded-2xl p-6"
         >
-          <h3 className="text-xl text-white mb-4">Dernières Activités</h3>
-          <div className="space-y-3">
-            {mockTasks.slice(0, 3).map((task) => (
-              <div
-                key={task.id}
-                className="bg-white/5 rounded-lg p-3 flex items-center"
-              >
-                <CheckSquare
-                  className={`mr-3 ${
-                    task.completed ? "text-green-500" : "text-blue-500"
-                  }`}
-                />
-                <div>
-                  <p className={task.completed ? "line-through" : ""}>
-                    {task.name}
-                  </p>
-                  {task.description && (
-                    <p className="text-sm text-gray-400 mt-1">
-                      {task.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-xl text-white mb-4">
+            Derni\u00e8res Activit\u00e9s
+          </h3>
+          <div className="space-y-3">{/* Activit\u00e9s r\u00e9centes */}</div>
         </motion.div>
       </div>
     </div>

@@ -8,7 +8,8 @@ export interface Client {
   city?: string;
   email?: string;
   phone?: string;
-  creationDate?: string;
+  creationDate?: Date;
+  updatedAt?: Date;
   imageUrl?: string;
   comments?: string;
 }
@@ -18,36 +19,42 @@ export interface Task {
   name: string;
   description?: string;
   completed: boolean;
+  dueDate?: Date;
 }
 
 export interface Invoice {
   id: number;
   invoiceNumber: string;
-  creationDate: string;
-  dueDate: string;
+  creationDate: Date;
+  dueDate: Date;
   clientId: number;
   pdfUrl?: string;
   total: number;
-  items?: {
-    description: string;
-    quantity: number;
-    unitPrice: number;
-  }[];
+  status?: "draft" | "sent" | "paid" | "overdue";
+  items?: InvoiceItem[];
+}
+
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
 }
 
 export interface Quote {
   id: number;
   quoteNumber: string;
-  creationDate: string;
-  validUntil: string;
+  creationDate: Date;
+  validUntil: Date;
   clientId: number;
   pdfUrl?: string;
   total: number;
-  items?: {
-    description: string;
-    quantity: number;
-    unitPrice: number;
-  }[];
+  items?: QuoteItem[];
+}
+
+export interface QuoteItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
 }
 
 export interface Document {
@@ -55,15 +62,18 @@ export interface Document {
   name: string;
   file: string;
   folderId: number;
-  uploadDate?: string;
+  uploadDate?: Date;
   description?: string;
-  type?: "legal" | "financial" | "contract" | "other";
+  type?: DocumentType;
 }
+
+export type DocumentType = "legal" | "financial" | "contract" | "other";
 
 export interface Folder {
   id: number;
   name: string;
   description?: string;
+  createdAt?: Date;
 }
 
 export interface Company {
@@ -78,7 +88,7 @@ export interface Company {
   email: string;
   taxIdentification?: string;
   businessSector?: string;
-  foundedDate?: string;
+  foundedDate?: Date;
 }
 
 export interface Revenue {
@@ -86,15 +96,18 @@ export interface Revenue {
   month: number;
   monthName: string;
   amount: number;
-  lastUpdated: string;
+  lastUpdated: Date;
 }
 
 export interface Payment {
   id: number;
   invoiceId: number;
   amount: number;
-  paymentDate: string;
-  paymentMethod: "espèces" | "virement" | "chèque" | "carte";
-  status: "payé" | "partiel" | "en attente";
+  paymentDate: Date;
+  paymentMethod: PaymentMethod;
+  status: PaymentStatus;
   reference?: string;
 }
+
+export type PaymentMethod = "espèces" | "virement" | "chèque" | "carte";
+export type PaymentStatus = "payé" | "partiel" | "en attente";

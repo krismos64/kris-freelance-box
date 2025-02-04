@@ -7,12 +7,14 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { DashboardService } from "../services/api";
 import {
-  mockClients,
-  mockInvoices,
-  mockQuotes,
-  mockRevenues,
-} from "../mocks/mockData";
+  Revenue,
+  ClientStats,
+  TaskStats,
+  InvoiceStats,
+} from "../types/database";
+import { motion } from "framer-motion";
 
 // Composant pour les cartes de statistiques
 const StatCard: React.FC<{
@@ -40,10 +42,7 @@ const StatCard: React.FC<{
   </div>
 );
 
-// Composant de graphique simple (simulé)
-const SimpleBarChart: React.FC<{
-  data: { month: string; amount: number }[];
-}> = ({ data }) => {
+const SimpleBarChart: React.FC<{ data: Revenue[] }> = ({ data }) => {
   const maxAmount = Math.max(...data.map((item) => item.amount));
 
   return (
@@ -58,9 +57,9 @@ const SimpleBarChart: React.FC<{
                 height: `${(item.amount / maxAmount) * 100}%`,
                 minHeight: "10px",
               }}
-              title={`${item.month}: ${item.amount}€`}
+              title={`${item.monthName}: ${item.amount}€`}
             />
-            <span className="text-white/70 mt-2 text-sm">{item.month}</span>
+            <span className="text-white/70 mt-2 text-sm">{item.monthName}</span>
           </div>
         ))}
       </div>
@@ -77,36 +76,46 @@ const StatisticsPage: React.FC = () => {
     averageInvoiceValue: 0,
     monthlyRevenueTrend: 0,
   });
+  const [revenues, setRevenues] = useState<Revenue[]>([]);
 
   useEffect(() => {
-    // Calcul des statistiques
-    const totalRevenue = mockInvoices.reduce(
-      (sum, invoice) => sum + invoice.total,
-      0
-    );
-    const clientCount = mockClients.length;
-    const invoiceCount = mockInvoices.length;
-    const quoteCount = mockQuotes.length;
-    const averageInvoiceValue = totalRevenue / invoiceCount || 0;
+    const fetchStatistics = async () => {
+      try {
+        const [revenueData, clientStats, taskStats, invoiceStats] =
+          await Promise.all([
+            DashboardService.fetchRevenues(),
+            DashboardService.fetchClientStats(),
+            DashboardService.fetchTaskStats(),
+            DashboardService.fetchInvoiceStats(),
+          ]);
 
-    // Calcul de la tendance des revenus mensuels
-    const revenueByMonth = mockRevenues;
-    const monthlyRevenueTrend =
-      revenueByMonth.length > 1
-        ? ((revenueByMonth[revenueByMonth.length - 1].amount -
-            revenueByMonth[0].amount) /
-            revenueByMonth[0].amount) *
-          100
-        : 0;
+        const totalRevenue = revenueData.reduce(
+          (sum, rev) => sum + rev.amount,
+          0
+        );
+        const monthlyRevenueTrend =
+          revenueData.length > 1
+            ? ((revenueData[revenueData.length - 1].amount -
+                revenueData[0].amount) /
+                revenueData[0].amount) *
+              100
+            : 0;
 
-    setStats({
-      totalRevenue,
-      clientCount,
-      invoiceCount,
-      quoteCount,
-      averageInvoiceValue,
-      monthlyRevenueTrend,
-    });
+        setStats({
+          totalRevenue,
+          clientCount: clientStats.count,
+          invoiceCount: invoiceStats.count,
+          quoteCount: invoiceStats.quoteCount,
+          averageInvoiceValue: invoiceStats.averageValue,
+          monthlyRevenueTrend,
+        });
+        setRevenues(revenueData);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des statistiques", error);
+      }
+    };
+
+    fetchStatistics();
   }, []);
 
   return (
@@ -137,12 +146,7 @@ const StatisticsPage: React.FC = () => {
 
       {/* Graphiques et Détails */}
       <div className="grid md:grid-cols-2 gap-6">
-        <SimpleBarChart
-          data={mockRevenues.map((rev) => ({
-            ...rev,
-            month: rev.month.toString(),
-          }))}
-        />
+        <SimpleBarChart data={revenues} />
 
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
           <h3 className="text-xl text-white mb-4">Détails Financiers</h3>
@@ -169,41 +173,6 @@ const StatisticsPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Tableau Récapitulatif */}
-      <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-        <h3 className="text-xl text-white mb-4">Récapitulatif des Factures</h3>
-        <table className="w-full text-white/80">
-          <thead>
-            <tr className="border-b border-white/20">
-              <th className="text-left py-2">Numéro</th>
-              <th className="text-left py-2">Client</th>
-              <th className="text-left py-2">Date</th>
-              <th className="text-right py-2">Montant</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockInvoices.map((invoice) => {
-              const client = mockClients.find((c) => c.id === invoice.clientId);
-              return (
-                <tr
-                  key={invoice.id}
-                  className="border-b border-white/10 hover:bg-white/5"
-                >
-                  <td className="py-2">{invoice.invoiceNumber}</td>
-                  <td className="py-2">{client?.name || "Client inconnu"}</td>
-                  <td className="py-2">
-                    {new Date(invoice.creationDate).toLocaleDateString()}
-                  </td>
-                  <td className="py-2 text-right">
-                    {invoice.total.toFixed(2)}€
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
       </div>
     </div>
   );

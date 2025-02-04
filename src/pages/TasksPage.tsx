@@ -1,48 +1,69 @@
-import React, { useState } from "react";
-import { mockTasks } from "../mocks/mockData";
+import React, { useState, useEffect } from "react";
 import { Plus, CheckSquare, Circle, Trash2 } from "lucide-react";
-import TaskForm from "../components/forms/TaskForm";
+import { TaskService } from "../services/api";
 import { Task } from "../types/database";
+import TaskForm from "../components/forms/TaskForm";
 
 const TasksPage: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
-  const toggleTaskCompletion = (taskId: number) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const fetchedTasks = await TaskService.fetchAll();
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des tâches", error);
+      }
+    };
+    fetchTasks();
+  }, []);
+
+  const toggleTaskCompletion = async (taskId: number) => {
+    try {
+      const updatedTask = await TaskService.toggleCompletion(taskId);
+      setTasks(
+        tasks.map((task) =>
+          task.id === taskId
+            ? { ...task, completed: updatedTask.completed }
+            : task
+        )
+      );
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la tâche", error);
+    }
   };
 
-  const handleAddTask = (newTask: Partial<Task>) => {
-    const taskToAdd = {
-      ...newTask,
-      id: tasks.length + 1,
-      completed: newTask.completed || false,
-    } as Task;
-
-    setTasks([...tasks, taskToAdd]);
-    setIsAddingTask(false);
+  const handleAddTask = async (newTask: Partial<Task>) => {
+    try {
+      const createdTask = await TaskService.create(newTask);
+      setTasks([...tasks, createdTask]);
+      setIsAddingTask(false);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la tâche", error);
+    }
   };
 
-  const handleDeleteTask = (taskId: number) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      await TaskService.delete(taskId);
+      setTasks(tasks.filter((task) => task.id !== taskId));
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la tâche", error);
+    }
   };
 
   return (
     <div className="p-6 bg-white/5 rounded-xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Mes Tâches</h1>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setIsAddingTask(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-          >
-            <Plus className="mr-2" /> Nouvelle Tâche
-          </button>
-        </div>
+        <button
+          onClick={() => setIsAddingTask(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+        >
+          <Plus className="mr-2" /> Nouvelle Tâche
+        </button>
       </div>
 
       {isAddingTask && (
