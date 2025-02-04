@@ -1,4 +1,7 @@
 import { createPool, Pool } from "mysql2/promise";
+import winston from "winston";
+import fs from "fs";
+import path from "path";
 
 // Configuration de la base de données
 interface DatabaseConfig {
@@ -10,7 +13,7 @@ interface DatabaseConfig {
   connectionLimit?: number;
 }
 
-const dbConfig: DatabaseConfig = {
+export const dbConfig: DatabaseConfig = {
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
@@ -19,13 +22,48 @@ const dbConfig: DatabaseConfig = {
   connectionLimit: 10,
 };
 
+// Création automatique du dossier "logs" si nécessaire
+const logsDirectory = path.join(__dirname, "logs");
+
+if (!fs.existsSync(logsDirectory)) {
+  fs.mkdirSync(logsDirectory);
+}
+
+// Configuration du logger
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+    })
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({
+      filename: path.join(logsDirectory, "database.log"),
+    }),
+  ],
+});
+
 // Création d'un pool de connexions à la base de données
 let pool: Pool;
 
-export const initializeDatabase = (): void => {
-  if (!pool) {
-    pool = createPool(dbConfig);
-    console.log("Connexion à la base de données initialisée");
+export const initializeDatabase = async (): Promise<void> => {
+  try {
+    if (!pool) {
+      pool = createPool(dbConfig);
+      await pool.getConnection(); // Vérification de la connexion initiale
+      logger.info("Connexion à la base de données initialisée");
+    }
+  } catch (error: unknown) {
+    const typedError =
+      error instanceof Error ? error : new Error(String(error));
+    logger.error(
+      "Erreur lors de l'initialisation de la base de données : " +
+        typedError.message
+    );
+    throw typedError;
   }
 };
 
@@ -41,16 +79,46 @@ export const executeQuery = async <T>(
   try {
     const [results] = await pool.execute(query, params);
     return results as T;
-  } catch (error) {
-    console.error("Erreur lors de l'exécution de la requête SQL :", error);
-    throw error;
+  } catch (error: unknown) {
+    const typedError =
+      error instanceof Error ? error : new Error(String(error));
+    logger.error(
+      "Erreur lors de l'exécution de la requête SQL : " + typedError.message
+    );
+    throw typedError;
+  }
+};
+
+// Gestion de la reconnexion automatique en cas de défaillance
+const reconnect = async (): Promise<void> => {
+  try {
+    logger.warn("Tentative de reconnexion à la base de données...");
+    await closeDatabase();
+    await initializeDatabase();
+    logger.info("Reconnexion réussie");
+  } catch (error: unknown) {
+    const typedError =
+      error instanceof Error ? error : new Error(String(error));
+    logger.error(
+      "Échec de la reconnexion à la base de données : " + typedError.message
+    );
+    throw typedError;
   }
 };
 
 // Fonction pour fermer la connexion à la base de données
 export const closeDatabase = async (): Promise<void> => {
   if (pool) {
-    await pool.end();
-    console.log("Connexion à la base de données fermée");
+    try {
+      await pool.end();
+      logger.info("Connexion à la base de données fermée");
+    } catch (error: unknown) {
+      const typedError =
+        error instanceof Error ? error : new Error(String(error));
+      logger.error(
+        "Erreur lors de la fermeture de la connexion à la base de données : " +
+          typedError.message
+      );
+    }
   }
 };

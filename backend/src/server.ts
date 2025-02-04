@@ -2,14 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import clientRoutes from "./routes/clientRoutes";
-import invoiceRoutes from "./routes/invoiceRoutes";
-import quoteRoutes from "./routes/quoteRoutes";
-import taskRoutes from "./routes/taskRoutes";
-import documentRoutes from "./routes/documentRoutes";
-import companyRoutes from "./routes/companyRoutes";
-import paymentRoutes from "./routes/paymentRoutes";
-import revenueRoutes from "./routes/revenueRoutes";
+import helmet from "helmet";
+import routes from "./routes";
 import path from "path";
 
 dotenv.config();
@@ -17,31 +11,56 @@ dotenv.config();
 const app = express();
 const PORT = process.env.SERVER_PORT || 5002;
 
+// Vérification des variables d'environnement
+if (!process.env.SERVER_PORT) {
+  console.error("⚠️  SERVER_PORT n'est pas défini dans le fichier .env");
+  process.exit(1);
+}
+
 // Middlewares
-app.use(cors());
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5174",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "documents")));
 
 // Routes
-app.use("/api/clients", clientRoutes);
-app.use("/api/quotes", quoteRoutes);
-app.use("/api/invoices", invoiceRoutes);
-app.use("/api/tasks", taskRoutes);
-app.use("/api/documents", documentRoutes);
-app.use("/api/company", companyRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/revenues", revenueRoutes);
+app.use("/api", routes);
 
 // Gestion des routes non trouvées (404)
-app.use((_, res) => {
-  res.status(404).json({ error: "Route non trouvée" });
+app.use((req: express.Request, res: express.Response) => {
+  res.status(404).json({ error: `Route non trouvée: ${req.originalUrl}` });
 });
 
 // Gestion des erreurs globales
-app.use((err: Error, req: express.Request, res: express.Response) => {
-  console.error("Erreur non gérée:", err);
-  res.status(500).json({ error: "Une erreur interne est survenue" });
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Erreur non gérée:", err);
+    res
+      .status(500)
+      .json({ error: err.message || "Une erreur interne est survenue" });
+  }
+);
+
+// Gestion des exceptions non gérées
+process.on("uncaughtException", (error) => {
+  console.error("Erreur fatale non gérée :", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Promesse rejetée sans gestion :", reason);
 });
 
 // Démarrage du serveur
