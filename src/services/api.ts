@@ -15,7 +15,7 @@ import {
 
 // Configurer Axios avec l'URL de base de l'API
 export const apiClient = axios.create({
-  baseURL: process.env.API_BASE_URL || "http://localhost:5002/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5002/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -55,6 +55,18 @@ export const ClientService = {
 
   async delete(clientId: number): Promise<void> {
     await apiClient.delete(`/clients/${clientId}`);
+  },
+};
+
+export const CompanyService = {
+  async fetchCompanyInfo(): Promise<any> {
+    const response = await apiClient.get("/company");
+    return response.data;
+  },
+
+  async updateCompanyInfo(companyData: Partial<any>): Promise<any> {
+    const response = await apiClient.put("/company", companyData);
+    return response.data;
   },
 };
 
