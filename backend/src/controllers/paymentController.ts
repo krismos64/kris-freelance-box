@@ -1,100 +1,164 @@
 import { Request, Response } from "express";
-import { DatabaseServices } from "../config/database";
-import { RowDataPacket, ResultSetHeader } from "mysql2";
+import { executeQuery } from "../config/database";
 
-export const getAllPayments = async (_req: Request, res: Response) => {
+// Interface pour représenter les données de paiement
+interface PaymentData {
+  invoiceId: number;
+  amount: number;
+  date: string;
+  method: string;
+}
+
+// Fonction de validation des données de paiement
+function validatePaymentData(paymentData: PaymentData): string[] {
+  const errors: string[] = [];
+
+  if (!paymentData.invoiceId || isNaN(paymentData.invoiceId))
+    errors.push("L'ID de la facture est requis et doit être un nombre valide");
+  if (!paymentData.amount || isNaN(paymentData.amount))
+    errors.push("Le montant est requis et doit être un nombre valide");
+  if (!paymentData.date || !validateDate(paymentData.date))
+    errors.push("Une date valide est requise");
+  if (!paymentData.method) errors.push("La méthode de paiement est requise");
+
+  return errors;
+}
+
+// Validation de la date
+function validateDate(date: string): boolean {
+  return !isNaN(Date.parse(date));
+}
+
+export const getAllPayments = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const payments = await DatabaseServices.getAllPayments();
-    res.json(payments);
+    const payments = await executeQuery<PaymentData[]>(
+      "SELECT * FROM payments"
+    );
+    res.status(200).json(payments);
   } catch (error) {
-    console.error("Erreur lors de la récupération des paiements:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la récupération des paiements :", error);
+    res
+      .status(500)
+      .json({
+        error:
+          "Une erreur s'est produite lors de la récupération des paiements",
+      });
   }
 };
 
-export const getPaymentById = async (_req: Request, res: Response) => {
-  const { id } = _req.params;
+export const getPaymentById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
-      `SELECT p.*, i.invoiceNumber, c.name as clientName
-       FROM payments p
-       LEFT JOIN invoices i ON p.invoiceId = i.id
-       LEFT JOIN clients c ON i.clientId = c.id
-       WHERE p.id = ?`,
-      [id]
+    const paymentId = parseInt(req.params.id);
+    const payment = await executeQuery<PaymentData[]>(
+      "SELECT * FROM payments WHERE id = ?",
+      [paymentId]
+    );
+    if (payment.length === 0) {
+      res.status(404).json({ error: "Paiement non trouvé" });
+      return;
+    }
+    res.status(200).json(payment[0]);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du paiement :", error);
+    res
+      .status(500)
+      .json({
+        error: "Une erreur s'est produite lors de la récupération du paiement",
+      });
+  }
+};
+
+export const createPayment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const paymentData: PaymentData = req.body;
+    const validationErrors = validatePaymentData(paymentData);
+
+    if (validationErrors.length > 0) {
+      res.status(400).json({ errors: validationErrors });
+      return;
+    }
+
+    await executeQuery(
+      "INSERT INTO payments (invoiceId, amount, date, method) VALUES (?, ?, ?, ?)",
+      [
+        paymentData.invoiceId,
+        paymentData.amount,
+        paymentData.date,
+        paymentData.method,
+      ]
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Paiement non trouvé" });
-    }
-
-    res.json(rows[0]);
+    res.status(201).json({ message: "Paiement créé avec succès" });
   } catch (error) {
-    console.error("Erreur lors de la récupération du paiement:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la création du paiement :", error);
+    res
+      .status(500)
+      .json({
+        error: "Une erreur s'est produite lors de la création du paiement",
+      });
   }
 };
 
-export const createPayment = async (_req: Request, res: Response) => {
+export const updatePayment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const result = await DatabaseServices.createPayment(_req.body);
-
-    // Mettre à jour le statut de la facture si nécessaire
-    if (_req.body.status === "payé") {
-      await DatabaseServices.executeQuery(
-        "UPDATE invoices SET status = 'paid' WHERE id = ?",
-        [_req.body.invoiceId]
-      );
+    const paymentId = parseInt(req.params.id);
+    const paymentData: Partial<PaymentData> = req.body;
+    if (Object.keys(paymentData).length === 0) {
+      res
+        .status(400)
+        .json({ error: "Aucune donnée fournie pour la mise à jour" });
+      return;
     }
 
-    res.status(201).json(result);
-  } catch (error) {
-    console.error("Erreur lors de la création du paiement:", error);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
-
-export const updatePayment = async (_req: Request, res: Response) => {
-  const { id } = _req.params;
-  try {
-    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
-      `UPDATE payments SET 
-        invoiceId = ?, 
-        amount = ?, 
-        paymentDate = ?, 
-        paymentMethod = ?, 
-        status = ?, 
-        reference = ?
-      WHERE id = ?`,
-      [...Object.values(_req.body), id]
+    await executeQuery(
+      "UPDATE payments SET invoiceId = ?, amount = ?, date = ?, method = ? WHERE id = ?",
+      [
+        paymentData.invoiceId,
+        paymentData.amount,
+        paymentData.date,
+        paymentData.method,
+        paymentId,
+      ]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Paiement non trouvé" });
-    }
-
-    res.json({ message: "Paiement mis à jour avec succès" });
+    res.status(200).json({ message: "Paiement mis à jour avec succès" });
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du paiement:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la mise à jour du paiement :", error);
+    res
+      .status(500)
+      .json({
+        error: "Une erreur s'est produite lors de la mise à jour du paiement",
+      });
   }
 };
 
-export const deletePayment = async (_req: Request, res: Response) => {
-  const { id } = _req.params;
+export const deletePayment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
-      "DELETE FROM payments WHERE id = ?",
-      [id]
-    );
+    const paymentId = parseInt(req.params.id);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Paiement non trouvé" });
-    }
-
-    res.json({ message: "Paiement supprimé avec succès" });
+    await executeQuery("DELETE FROM payments WHERE id = ?", [paymentId]);
+    res.status(200).json({ message: "Paiement supprimé avec succès" });
   } catch (error) {
-    console.error("Erreur lors de la suppression du paiement:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la suppression du paiement :", error);
+    res
+      .status(500)
+      .json({
+        error: "Une erreur s'est produite lors de la suppression du paiement",
+      });
   }
 };

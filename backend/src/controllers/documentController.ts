@@ -1,120 +1,186 @@
 import { Request, Response } from "express";
-import { DatabaseServices } from "../config/database";
-import { RowDataPacket, ResultSetHeader } from "mysql2";
-import path from "path";
-import fs from "fs";
+import { executeQuery } from "../config/database";
 
-export const getAllDocuments = async (_req: Request, res: Response) => {
+// Interface pour représenter les données d'une entreprise
+interface CompanyData {
+  name: string;
+  registrationNumber: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  phone: string;
+  email: string;
+}
+
+// Fonction de validation des données de l'entreprise
+function validateCompanyData(companyData: CompanyData): string[] {
+  const errors: string[] = [];
+
+  if (!companyData.name) errors.push("Le nom de l'entreprise est requis");
+  if (!companyData.registrationNumber)
+    errors.push("Le numéro d'enregistrement est requis");
+  if (!companyData.email || !validateEmail(companyData.email))
+    errors.push("Un email valide est requis");
+  if (!companyData.phone) errors.push("Le numéro de téléphone est requis");
+
+  return errors;
+}
+
+// Validation de l'email
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Middleware pour vérifier si l'ID de l'entreprise est valide
+function validateCompanyId(req: Request, res: Response, next: Function): void {
+  const companyId = parseInt(req.params.id);
+  if (isNaN(companyId)) {
+    res.status(400).json({ error: "ID d'entreprise invalide" });
+    return;
+  }
+  next();
+}
+
+export const getAllCompanies = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
-      `SELECT d.*, f.name as folderName
-       FROM documents d
-       LEFT JOIN folders f ON d.folderId = f.id
-       ORDER BY d.uploadDate DESC`
+    const companies = await executeQuery<CompanyData[]>(
+      "SELECT * FROM companies"
     );
-    res.json(rows);
+    res.status(200).json(companies);
   } catch (error) {
-    console.error("Erreur lors de la récupération des documents:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la récupération des entreprises :", error);
+    res
+      .status(500)
+      .json({
+        error:
+          "Une erreur s'est produite lors de la récupération des entreprises",
+      });
   }
 };
 
-export const getDocumentById = async (_req: Request, res: Response) => {
-  const { id } = _req.params;
+export const getCompanyById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
-      `SELECT d.*, f.name as folderName
-       FROM documents d
-       LEFT JOIN folders f ON d.folderId = f.id
-       WHERE d.id = ?`,
-      [id]
+    const companyId = parseInt(req.params.id);
+    const company = await executeQuery<CompanyData[]>(
+      "SELECT * FROM companies WHERE id = ?",
+      [companyId]
     );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Document non trouvé" });
+    if (company.length === 0) {
+      res.status(404).json({ error: "Entreprise non trouvée" });
+      return;
     }
-
-    res.json(rows[0]);
+    res.status(200).json(company[0]);
   } catch (error) {
-    console.error("Erreur lors de la récupération du document:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la récupération de l'entreprise :", error);
+    res
+      .status(500)
+      .json({
+        error:
+          "Une erreur s'est produite lors de la récupération de l'entreprise",
+      });
   }
 };
 
-export const uploadDocument = async (_req: Request, res: Response) => {
-  if (!_req.file) {
-    return res.status(400).json({ error: "Aucun fichier téléchargé" });
-  }
-
+export const createCompany = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const { folderId } = _req.body;
-    const file = _req.file;
-    const uploadDir = path.join(__dirname, "..", "..", "documents");
+    const companyData: CompanyData = req.body;
+    const validationErrors = validateCompanyData(companyData);
 
-    // Créer le répertoire s'il n'existe pas
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (validationErrors.length > 0) {
+      res.status(400).json({ errors: validationErrors });
+      return;
     }
 
-    const filePath = path.join(uploadDir, file.originalname);
-    fs.writeFileSync(filePath, file.buffer);
-
-    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
-      `INSERT INTO documents (
-        name, file, folderId, uploadDate, type
-      ) VALUES (?, ?, ?, ?, ?)`,
+    await executeQuery(
+      "INSERT INTO companies (name, registrationNumber, address, postalCode, city, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [
-        file.originalname,
-        `/documents/${file.originalname}`,
-        folderId,
-        new Date(),
-        file.mimetype.includes("pdf") ? "legal" : "other",
+        companyData.name,
+        companyData.registrationNumber,
+        companyData.address,
+        companyData.postalCode,
+        companyData.city,
+        companyData.phone,
+        companyData.email,
       ]
     );
 
-    res.status(201).json({
-      id: result.insertId,
-      name: file.originalname,
-      file: `/documents/${file.originalname}`,
-      folderId,
-      uploadDate: new Date(),
-      type: file.mimetype.includes("pdf") ? "legal" : "other",
-    });
+    res.status(201).json({ message: "Entreprise créée avec succès" });
   } catch (error) {
-    console.error("Erreur lors du téléchargement du document:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la création de l'entreprise :", error);
+    res
+      .status(500)
+      .json({
+        error: "Une erreur s'est produite lors de la création de l'entreprise",
+      });
   }
 };
 
-export const deleteDocument = async (_req: Request, res: Response) => {
-  const { id } = _req.params;
+export const updateCompany = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    // Récupérer le chemin du fichier avant la suppression
-    const [rows] = await DatabaseServices.executeQuery<RowDataPacket[]>(
-      "SELECT file FROM documents WHERE id = ?",
-      [id]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Document non trouvé" });
+    const companyId = parseInt(req.params.id);
+    const companyData: Partial<CompanyData> = req.body;
+    if (Object.keys(companyData).length === 0) {
+      res
+        .status(400)
+        .json({ error: "Aucune donnée fournie pour la mise à jour" });
+      return;
     }
 
-    const filePath = path.join(__dirname, "..", "..", rows[0].file);
-
-    // Supprimer le fichier physique
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-
-    // Supprimer l'entrée de la base de données
-    const [result] = await DatabaseServices.executeQuery<ResultSetHeader>(
-      "DELETE FROM documents WHERE id = ?",
-      [id]
+    await executeQuery(
+      "UPDATE companies SET name = ?, registrationNumber = ?, address = ?, postalCode = ?, city = ?, phone = ?, email = ? WHERE id = ?",
+      [
+        companyData.name,
+        companyData.registrationNumber,
+        companyData.address,
+        companyData.postalCode,
+        companyData.city,
+        companyData.phone,
+        companyData.email,
+        companyId,
+      ]
     );
 
-    res.json({ message: "Document supprimé avec succès" });
+    res.status(200).json({ message: "Entreprise mise à jour avec succès" });
   } catch (error) {
-    console.error("Erreur lors de la suppression du document:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur lors de la mise à jour de l'entreprise :", error);
+    res
+      .status(500)
+      .json({
+        error:
+          "Une erreur s'est produite lors de la mise à jour de l'entreprise",
+      });
+  }
+};
+
+export const deleteCompany = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const companyId = parseInt(req.params.id);
+
+    await executeQuery("DELETE FROM companies WHERE id = ?", [companyId]);
+    res.status(200).json({ message: "Entreprise supprimée avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'entreprise :", error);
+    res
+      .status(500)
+      .json({
+        error:
+          "Une erreur s'est produite lors de la suppression de l'entreprise",
+      });
   }
 };
