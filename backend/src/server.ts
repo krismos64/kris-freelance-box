@@ -4,18 +4,26 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import helmet from "helmet";
 import routes from "./routes";
-import path from "path";
+import testRoutes from "./routes/testRoutes";
+import { initializeDatabase } from "./config/database"; // Assurez-vous que le chemin est correct
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 5002;
 
-// Vérification des variables d'environnement
-if (!process.env.SERVER_PORT) {
-  console.error("⚠️  SERVER_PORT n'est pas défini dans le fichier .env");
-  process.exit(1);
-}
+(async () => {
+  try {
+    await initializeDatabase();
+    console.log("Connexion à la base de données réussie");
+  } catch (error) {
+    console.error(
+      "Erreur lors de l'initialisation de la base de données :",
+      error
+    );
+    process.exit(1); // Arrête le serveur si la base de données ne peut pas se connecter
+  }
+})();
 
 // Middlewares
 app.use(helmet());
@@ -28,13 +36,13 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "..", "documents")));
 
 // Routes
 app.use("/api", routes);
+app.use("/api", testRoutes);
 
-// Gestion des routes non trouvées (404)
-app.use((req: express.Request, res: express.Response) => {
+// Gestion des routes non trouvées
+app.use((req, res) => {
   res.status(404).json({ error: `Route non trouvée: ${req.originalUrl}` });
 });
 
@@ -52,16 +60,6 @@ app.use(
       .json({ error: err.message || "Une erreur interne est survenue" });
   }
 );
-
-// Gestion des exceptions non gérées
-process.on("uncaughtException", (error) => {
-  console.error("Erreur fatale non gérée :", error);
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (reason) => {
-  console.error("Promesse rejetée sans gestion :", reason);
-});
 
 // Démarrage du serveur
 app.listen(PORT, () => {
