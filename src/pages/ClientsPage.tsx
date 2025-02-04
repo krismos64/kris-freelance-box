@@ -43,10 +43,8 @@ const ClientsPage: React.FC = () => {
 
   const handleDeleteClient = async (clientId: number) => {
     try {
-      const success = await ClientService.delete(clientId);
-      if (success) {
-        setClients(clients.filter((client) => client.id !== clientId));
-      }
+      await ClientService.delete(clientId);
+      setClients(clients.filter((client) => client.id !== clientId));
     } catch (error) {
       console.error("Erreur lors de la suppression du client", error);
     }

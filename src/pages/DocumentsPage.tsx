@@ -11,19 +11,134 @@ import {
   X,
   Eye,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { DocumentService } from "../services/api";
 import { Document, Folder } from "../types/database";
 import DocumentForm from "../components/forms/DocumentForm";
 import PDFViewer from "../components/PDFViewer";
 
+// Fonction utilitaire pour vérifier le type de document
+const isDocument = (item: any): item is Document => {
+  return item && "pdfUrl" in item && "folderId" in item;
+};
+
+// Composant de liste des dossiers
+const FolderList: React.FC<{
+  folders: Folder[];
+  selectedFolder: number | null;
+  setSelectedFolder: (folderId: number | null) => void;
+  documents: Document[];
+  onCreateFolder: (name: string) => void;
+  onDeleteFolder: (folderId: number) => void;
+}> = ({
+  folders,
+  selectedFolder,
+  setSelectedFolder,
+  documents,
+  onCreateFolder,
+  onDeleteFolder,
+}) => {
+  const [isAddingFolder, setIsAddingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+
+  const handleCreateFolder = () => {
+    if (newFolderName.trim()) {
+      onCreateFolder(newFolderName);
+      setNewFolderName("");
+      setIsAddingFolder(false);
+    }
+  };
+
+  return (
+    <div className="w-64 bg-white/10 rounded-xl p-4 mr-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-white">Dossiers</h2>
+        <button
+          onClick={() => setIsAddingFolder(true)}
+          className="text-white hover:text-blue-400"
+        >
+          <Plus />
+        </button>
+      </div>
+
+      {isAddingFolder && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 flex"
+        >
+          <input
+            type="text"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="Nom du dossier"
+            className="flex-grow bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1 mr-2"
+          />
+          <button
+            onClick={handleCreateFolder}
+            className="bg-blue-600 text-white p-1 rounded"
+          >
+            <Save size={20} />
+          </button>
+          <button
+            onClick={() => setIsAddingFolder(false)}
+            className="bg-red-600 text-white p-1 rounded ml-1"
+          >
+            <X size={20} />
+          </button>
+        </motion.div>
+      )}
+
+      <div className="space-y-2">
+        <button
+          onClick={() => setSelectedFolder(null)}
+          className={`w-full text-left p-2 rounded-lg flex justify-between items-center 
+          ${
+            selectedFolder === null
+              ? "bg-blue-600 text-white"
+              : "hover:bg-white/10"
+          }`}
+        >
+          <FolderIcon className="mr-2" /> Tous les documents
+          <span className="text-sm text-white/70">{documents.length}</span>
+        </button>
+
+        {folders.map((folder) => (
+          <div key={folder.id} className="flex justify-between items-center">
+            <button
+              onClick={() => setSelectedFolder(folder.id)}
+              className={`flex-grow text-left p-2 rounded-lg flex justify-between items-center 
+              ${
+                selectedFolder === folder.id
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-white/10"
+              }`}
+            >
+              <div className="flex items-center">
+                <FolderIcon className="mr-2" />
+                <span>{folder.name}</span>
+              </div>
+              <span className="text-sm text-white/70">
+                {documents.filter((doc) => doc.folderId === folder.id).length}
+              </span>
+            </button>
+            <button
+              onClick={() => onDeleteFolder(folder.id)}
+              className="text-red-500 hover:text-red-700 ml-2"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const DocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
-  const [isAddingDocument, setIsAddingDocument] = useState(false);
-  const [isAddingFolder, setIsAddingFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
@@ -40,7 +155,7 @@ const DocumentsPage: React.FC = () => {
         setFolders(fetchedFolders);
       } catch (error) {
         console.error(
-          "Erreur lors de la r\u00e9cup\u00e9ration des documents et dossiers",
+          "Erreur lors de la récupération des documents et dossiers",
           error
         );
       }
@@ -48,40 +163,12 @@ const DocumentsPage: React.FC = () => {
     fetchDocumentsAndFolders();
   }, []);
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      try {
-        const uploadedDocument = await DocumentService.upload(
-          file,
-          selectedFolder
-        );
-        setDocuments([...documents, uploadedDocument]);
-        setIsAddingDocument(false);
-      } catch (error) {
-        console.error("Erreur lors du téléchargement du document", error);
-      }
-    }
-  };
-
-  const downloadDocument = (doc: Document) => {
-    DocumentService.download(doc);
-  };
-
-  const handleCreateFolder = async () => {
-    if (newFolderName.trim()) {
-      try {
-        const newFolder = await DocumentService.createFolder({
-          name: newFolderName,
-        });
-        setFolders([...folders, newFolder]);
-        setIsAddingFolder(false);
-        setNewFolderName("");
-      } catch (error) {
-        console.error("Erreur lors de la création du dossier", error);
-      }
+  const handleCreateFolder = async (name: string) => {
+    try {
+      const newFolder = await DocumentService.createFolder({ name });
+      setFolders([...folders, newFolder]);
+    } catch (error) {
+      console.error("Erreur lors de la création du dossier", error);
     }
   };
 
@@ -95,29 +182,6 @@ const DocumentsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteDocument = async (documentId: number) => {
-    try {
-      await DocumentService.delete(documentId);
-      setDocuments(documents.filter((doc) => doc.id !== documentId));
-    } catch (error) {
-      console.error("Erreur lors de la suppression du document", error);
-    }
-  };
-
-  const handleRenameDocument = async (document: Document, newName: string) => {
-    try {
-      const updatedDocument = await DocumentService.update(document.id, {
-        name: newName,
-      });
-      setDocuments(
-        documents.map((doc) => (doc.id === document.id ? updatedDocument : doc))
-      );
-      setEditingDocument(null);
-    } catch (error) {
-      console.error("Erreur lors de la mise \u00e0 jour du document", error);
-    }
-  };
-
   const filteredDocuments = documents.filter(
     (doc) =>
       doc.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -126,84 +190,14 @@ const DocumentsPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-white/5 rounded-xl flex">
-      <div className="w-64 bg-white/10 rounded-xl p-4 mr-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white">Dossiers</h2>
-          <button
-            onClick={() => setIsAddingFolder(true)}
-            className="text-white hover:text-blue-400"
-          >
-            <Plus />
-          </button>
-        </div>
-
-        {isAddingFolder && (
-          <div className="mb-4 flex">
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Nom du dossier"
-              className="flex-grow bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1 mr-2"
-            />
-            <button
-              onClick={handleCreateFolder}
-              className="bg-blue-600 text-white p-1 rounded"
-            >
-              <Save size={20} />
-            </button>
-            <button
-              onClick={() => setIsAddingFolder(false)}
-              className="bg-red-600 text-white p-1 rounded ml-1"
-            >
-              <X size={20} />
-            </button>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <button
-            onClick={() => setSelectedFolder(null)}
-            className={`w-full text-left p-2 rounded-lg flex justify-between items-center 
-            ${
-              selectedFolder === null
-                ? "bg-blue-600 text-white"
-                : "hover:bg-white/10"
-            }`}
-          >
-            <FolderIcon className="mr-2" /> Tous les documents
-            <span className="text-sm text-white/70">{documents.length}</span>
-          </button>
-
-          {folders.map((folder) => (
-            <div key={folder.id} className="flex justify-between items-center">
-              <button
-                onClick={() => setSelectedFolder(folder.id)}
-                className={`flex-grow text-left p-2 rounded-lg flex justify-between items-center 
-                ${
-                  selectedFolder === folder.id
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-white/10"
-                }`}
-              >
-                <div className="flex items-center">
-                  <FolderIcon className="mr-2" />
-                  <span>{folder.name}</span>
-                </div>
-                <span className="text-sm text-white/70">
-                  {documents.filter((doc) => doc.folderId === folder.id).length}
-                </span>
-              </button>
-              <button
-                onClick={() => handleDeleteFolder(folder.id)}
-                className="text-red-500 hover:text-red-700 ml-2"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      <FolderList
+        folders={folders}
+        selectedFolder={selectedFolder}
+        setSelectedFolder={setSelectedFolder}
+        documents={documents}
+        onCreateFolder={handleCreateFolder}
+        onDeleteFolder={handleDeleteFolder}
+      />
 
       <div className="flex-1">
         <div className="flex justify-between items-center mb-6">
@@ -227,7 +221,16 @@ const DocumentsPage: React.FC = () => {
               type="file"
               id="document-upload"
               className="hidden"
-              onChange={handleFileUpload}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  DocumentService.upload(file, selectedFolder || undefined)
+                    .then((newDoc) => setDocuments([...documents, newDoc]))
+                    .catch((error) =>
+                      console.error("Erreur lors de l'upload", error)
+                    );
+                }
+              }}
             />
             <label
               htmlFor="document-upload"
@@ -240,32 +243,24 @@ const DocumentsPage: React.FC = () => {
 
         <div className="space-y-4">
           {filteredDocuments.map((doc) => (
-            <div
+            <motion.div
               key={doc.id}
               className="bg-white/10 backdrop-blur-md rounded-xl p-4 flex justify-between items-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
             >
               <div className="flex items-center flex-grow">
                 <File className="mr-4 text-blue-400" />
-                {editingDocument?.id === doc.id ? (
-                  <input
-                    type="text"
-                    defaultValue={doc.name}
-                    onBlur={(e) => handleRenameDocument(doc, e.target.value)}
-                    className="flex-grow bg-white/10 border border-white/20 rounded-lg px-2 py-1"
-                  />
-                ) : (
-                  <div className="flex-grow">
-                    <h3 className="text-white font-bold">{doc.name}</h3>
-                    <p className="text-white/70 text-sm">
-                      Ajout\u00e9 le {doc.uploadDate} dans{" "}
-                      {folders.find((f) => f.id === doc.folderId)?.name}
-                    </p>
-                  </div>
-                )}
+                <div className="flex-grow">
+                  <h3 className="text-white font-bold">{doc.name}</h3>
+                  <p className="text-white/70 text-sm">
+                    Ajouté le {doc.uploadDate?.toLocaleDateString()}
+                  </p>
+                </div>
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => downloadDocument(doc)}
+                  onClick={() => DocumentService.download(doc)}
                   className="text-white hover:text-blue-400"
                 >
                   <Download />
@@ -277,26 +272,21 @@ const DocumentsPage: React.FC = () => {
                   <Eye />
                 </button>
                 <button
-                  onClick={() => setEditingDocument(doc)}
-                  className="text-white hover:text-blue-400"
-                >
-                  <Edit />
-                </button>
-                <button
-                  onClick={() => handleDeleteDocument(doc.id)}
+                  onClick={() => DocumentService.delete(doc.id)}
                   className="text-red-500 hover:text-red-700"
                 >
                   <Trash2 />
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
 
-      {selectedDocument && (
+      {/* Affichage conditionnel du PDFViewer */}
+      {selectedDocument && isDocument(selectedDocument) && (
         <PDFViewer
-          document={selectedDocument}
+          documentData={selectedDocument}
           onClose={() => setSelectedDocument(null)}
         />
       )}

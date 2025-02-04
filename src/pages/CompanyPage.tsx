@@ -56,12 +56,8 @@ const CompanyPage: React.FC = () => {
   const handleSave = async () => {
     if (companyData) {
       try {
-        const success = await CompanyService.updateCompany(companyData);
-        if (success) {
-          console.log("Entreprise mise \u00e0 jour avec succ\u00e8s");
-        } else {
-          console.error("Erreur lors de la mise \u00e0 jour de l'entreprise");
-        }
+        await CompanyService.updateCompany(companyData);
+        console.log("Entreprise mise \u00e0 jour avec succ\u00e8s");
       } catch (error) {
         console.error("Erreur lors de la mise \u00e0 jour", error);
       }

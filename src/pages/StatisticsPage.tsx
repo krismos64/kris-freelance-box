@@ -7,14 +7,27 @@ import {
   FileText,
   Users,
 } from "lucide-react";
-import { DashboardService } from "../services/api";
-import {
-  Revenue,
-  ClientStats,
-  TaskStats,
-  InvoiceStats,
-} from "../types/database";
 import { motion } from "framer-motion";
+
+// Types pour les données
+interface Revenue {
+  monthName: string;
+  amount: number;
+}
+
+interface ClientStats {
+  count: number;
+}
+
+interface TaskStats {
+  incompleteTasks: number;
+}
+
+interface InvoiceStats {
+  count: number;
+  quoteCount: number;
+  averageValue: number;
+}
 
 // Composant pour les cartes de statistiques
 const StatCard: React.FC<{
@@ -23,7 +36,12 @@ const StatCard: React.FC<{
   value: string;
   trend?: number;
 }> = ({ icon, title, value, trend }) => (
-  <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 transform transition-all hover:scale-105">
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+    className="bg-white/10 backdrop-blur-md rounded-xl p-6 transform transition-all hover:scale-105"
+  >
     <div className="flex justify-between items-center mb-4">
       <div className="text-4xl text-white/80">{icon}</div>
       {trend !== undefined && (
@@ -33,17 +51,18 @@ const StatCard: React.FC<{
           }`}
         >
           {trend >= 0 ? <TrendingUp /> : <TrendingDown />}
-          <span className="ml-2">{Math.abs(trend)}%</span>
+          <span className="ml-2">{Math.abs(trend).toFixed(2)}%</span>
         </div>
       )}
     </div>
     <h3 className="text-lg text-white/70 mb-2">{title}</h3>
     <p className="text-3xl font-bold text-white">{value}</p>
-  </div>
+  </motion.div>
 );
 
+// Composant pour afficher un graphique simple
 const SimpleBarChart: React.FC<{ data: Revenue[] }> = ({ data }) => {
-  const maxAmount = Math.max(...data.map((item) => item.amount));
+  const maxAmount = Math.max(...data.map((item) => item.amount), 0);
 
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
@@ -57,7 +76,7 @@ const SimpleBarChart: React.FC<{ data: Revenue[] }> = ({ data }) => {
                 height: `${(item.amount / maxAmount) * 100}%`,
                 minHeight: "10px",
               }}
-              title={`${item.monthName}: ${item.amount}€`}
+              title={`${item.monthName}: ${item.amount.toFixed(2)}€`}
             />
             <span className="text-white/70 mt-2 text-sm">{item.monthName}</span>
           </div>
@@ -77,46 +96,61 @@ const StatisticsPage: React.FC = () => {
     monthlyRevenueTrend: 0,
   });
   const [revenues, setRevenues] = useState<Revenue[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const [revenueData, clientStats, taskStats, invoiceStats] =
-          await Promise.all([
-            DashboardService.fetchRevenues(),
-            DashboardService.fetchClientStats(),
-            DashboardService.fetchTaskStats(),
-            DashboardService.fetchInvoiceStats(),
-          ]);
+        // Appels API directs
+        const [revenueRes, clientRes, taskRes, invoiceRes] = await Promise.all([
+          fetch("/api/revenues").then((res) => res.json()),
+          fetch("/api/clients/stats").then((res) => res.json()),
+          fetch("/api/tasks/stats").then((res) => res.json()),
+          fetch("/api/invoices/stats").then((res) => res.json()),
+        ]);
 
-        const totalRevenue = revenueData.reduce(
-          (sum, rev) => sum + rev.amount,
+        // Calcul des statistiques
+        const totalRevenue = revenueRes.reduce(
+          (sum: number, rev: Revenue) => sum + rev.amount,
           0
         );
         const monthlyRevenueTrend =
-          revenueData.length > 1
-            ? ((revenueData[revenueData.length - 1].amount -
-                revenueData[0].amount) /
-                revenueData[0].amount) *
+          revenueRes.length > 1
+            ? ((revenueRes[revenueRes.length - 1].amount -
+                revenueRes[0].amount) /
+                revenueRes[0].amount) *
               100
             : 0;
 
+        // Mise à jour de l'état
         setStats({
           totalRevenue,
-          clientCount: clientStats.count,
-          invoiceCount: invoiceStats.count,
-          quoteCount: invoiceStats.quoteCount,
-          averageInvoiceValue: invoiceStats.averageValue,
+          clientCount: clientRes.count,
+          invoiceCount: invoiceRes.count,
+          quoteCount: invoiceRes.quoteCount,
+          averageInvoiceValue: invoiceRes.averageValue,
           monthlyRevenueTrend,
         });
-        setRevenues(revenueData);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des statistiques", error);
+        setRevenues(revenueRes);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des statistiques", err);
+        setError("Impossible de charger les statistiques.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStatistics();
   }, []);
+
+  if (loading) {
+    return <p className="text-white">Chargement des statistiques...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
 
   return (
     <div className="p-6 bg-white/5 rounded-xl space-y-6">

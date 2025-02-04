@@ -1,83 +1,90 @@
-// Types de données pour l'application FreelanceBox
-
-export interface Client {
+interface BaseEntity {
   id: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Interface Client
+export interface Client extends BaseEntity {
   name: string;
   address?: string;
   postalCode?: string;
   city?: string;
   email?: string;
   phone?: string;
-  creationDate?: Date;
-  updatedAt?: Date;
   imageUrl?: string;
   comments?: string;
 }
 
-export interface Task {
-  id: number;
+// Interface Task
+export interface Task extends BaseEntity {
   name: string;
   description?: string;
   completed: boolean;
   dueDate?: Date;
 }
 
-export interface Invoice {
-  id: number;
+// Interface Invoice
+export interface Invoice extends BaseEntity {
   invoiceNumber: string;
-  creationDate: Date;
+  issuedAt: Date;
   dueDate: Date;
   clientId: number;
   pdfUrl?: string;
   total: number;
   status?: "draft" | "sent" | "paid" | "overdue";
+  client?: Client;
   items?: InvoiceItem[];
 }
 
+// Interface InvoiceItem
 export interface InvoiceItem {
   description: string;
   quantity: number;
   unitPrice: number;
 }
 
-export interface Quote {
-  id: number;
+// Interface Quote
+export interface Quote extends BaseEntity {
   quoteNumber: string;
-  creationDate: Date;
+  issuedAt: Date;
   validUntil: Date;
   clientId: number;
   pdfUrl?: string;
   total: number;
+  client?: Client;
   items?: QuoteItem[];
 }
 
+// Interface QuoteItem
 export interface QuoteItem {
   description: string;
   quantity: number;
   unitPrice: number;
 }
 
-export interface Document {
-  id: number;
+// Interface Document
+export interface Document extends BaseEntity {
   name: string;
   file: string;
   folderId: number;
   uploadDate?: Date;
+  pdfUrl: string;
   description?: string;
   type?: DocumentType;
 }
 
+// Type DocumentType
 export type DocumentType = "legal" | "financial" | "contract" | "other";
 
-export interface Folder {
-  id: number;
+// Interface Folder
+export interface Folder extends BaseEntity {
   name: string;
   description?: string;
-  createdAt?: Date;
 }
 
-export interface Company {
-  id: number;
+// Interface Company
+export interface Company extends BaseEntity {
   companyName: string;
   siretNumber: string;
   logoUrl?: string;
@@ -91,6 +98,7 @@ export interface Company {
   foundedDate?: Date;
 }
 
+// Interface Revenue
 export interface Revenue {
   year: number;
   month: number;
@@ -99,8 +107,8 @@ export interface Revenue {
   lastUpdated: Date;
 }
 
-export interface Payment {
-  id: number;
+// Interface Payment
+export interface Payment extends BaseEntity {
   invoiceId: number;
   amount: number;
   paymentDate: Date;
@@ -109,5 +117,26 @@ export interface Payment {
   reference?: string;
 }
 
+// Types liés au paiement
 export type PaymentMethod = "espèces" | "virement" | "chèque" | "carte";
 export type PaymentStatus = "payé" | "partiel" | "en attente";
+
+// Interface ClientStats
+export interface ClientStats {
+  count: number; // Nombre total de clients
+  newClients?: number; // Clients ajoutés récemment
+}
+
+// Interface TaskStats
+export interface TaskStats {
+  totalTasks: number; // Nombre total de tâches
+  incompleteTasks: number; // Nombre de tâches incomplètes
+  completedTasks: number; // Nombre de tâches complétées
+}
+
+// Interface InvoiceStats
+export interface InvoiceStats {
+  count: number; // Nombre total de factures émises
+  quoteCount: number; // Nombre total de devis
+  averageValue: number; // Valeur moyenne des factures
+}

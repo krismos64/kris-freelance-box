@@ -7,8 +7,7 @@ import {
   TrendingDown,
   DollarSign,
 } from "lucide-react";
-import { DashboardService } from "../services/api";
-import { Revenue, ClientStats, TaskStats } from "../types/database";
+import { Revenue } from "../types/database";
 import { motion } from "framer-motion";
 
 const DashboardWidget: React.FC<{
@@ -61,7 +60,7 @@ const DashboardWidget: React.FC<{
 };
 
 const RevenueChart: React.FC<{ data: Revenue[] }> = ({ data }) => {
-  const maxAmount = Math.max(...data.map((item) => item.amount));
+  const maxAmount = Math.max(...data.map((item) => item.amount), 0);
 
   return (
     <motion.div
@@ -111,34 +110,37 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [revenueData, clientData, taskData] = await Promise.all([
-          DashboardService.fetchRevenues(),
-          DashboardService.fetchClientStats(),
-          DashboardService.fetchTaskStats(),
+        // Remplacer les URL ci-dessous par les endpoints API réels
+        const [revenueRes, clientRes, taskRes] = await Promise.all([
+          fetch("/api/revenues").then((res) => res.json()),
+          fetch("/api/clients/stats").then((res) => res.json()),
+          fetch("/api/tasks/stats").then((res) => res.json()),
         ]);
 
-        const totalRevenue = revenueData.reduce(
+        // Traitement des données de revenus
+        const totalRevenue = revenueRes.reduce(
           (sum: number, rev: Revenue) => sum + rev.amount,
           0
         );
         const revenueTrend =
-          revenueData.length > 1
-            ? ((revenueData[revenueData.length - 1].amount -
-                revenueData[0].amount) /
-                revenueData[0].amount) *
+          revenueRes.length > 1
+            ? ((revenueRes[revenueRes.length - 1].amount -
+                revenueRes[0].amount) /
+                revenueRes[0].amount) *
               100
             : 0;
 
+        // Mise à jour de l'état avec les données reçues
         setStats({
           totalRevenue,
-          clientCount: clientData.count,
-          taskCount: taskData.incompleteTasks,
+          clientCount: clientRes.count,
+          taskCount: taskRes.incompleteTasks,
           revenueTrend,
         });
-        setRevenues(revenueData);
+        setRevenues(revenueRes);
       } catch (error) {
         console.error(
-          "Erreur lors de la r\u00e9cup\u00e9ration des donn\u00e9es du tableau de bord",
+          "Erreur lors de la récupération des données du tableau de bord",
           error
         );
       }
@@ -180,7 +182,7 @@ const Dashboard: React.FC = () => {
         />
         <DashboardWidget
           icon={<CheckSquare />}
-          title="T\u00e2ches en Cours"
+          title="Tâches en Cours"
           value={stats.taskCount}
           delay={0.3}
         />
@@ -195,10 +197,8 @@ const Dashboard: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="bg-white/10 backdrop-blur-md rounded-2xl p-6"
         >
-          <h3 className="text-xl text-white mb-4">
-            Derni\u00e8res Activit\u00e9s
-          </h3>
-          <div className="space-y-3">{/* Activit\u00e9s r\u00e9centes */}</div>
+          <h3 className="text-xl text-white mb-4">Dernières Activités</h3>
+          <div className="space-y-3">{/* Activités récentes */}</div>
         </motion.div>
       </div>
     </div>
