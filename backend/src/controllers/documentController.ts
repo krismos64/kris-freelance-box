@@ -1,186 +1,152 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { validationResult } from "express-validator";
 import { executeQuery } from "../config/database";
 
-// Interface pour représenter les données d'une entreprise
-interface CompanyData {
-  name: string;
-  registrationNumber: string;
-  address: string;
-  postalCode: string;
-  city: string;
-  phone: string;
-  email: string;
-}
-
-// Fonction de validation des données de l'entreprise
-function validateCompanyData(companyData: CompanyData): string[] {
-  const errors: string[] = [];
-
-  if (!companyData.name) errors.push("Le nom de l'entreprise est requis");
-  if (!companyData.registrationNumber)
-    errors.push("Le numéro d'enregistrement est requis");
-  if (!companyData.email || !validateEmail(companyData.email))
-    errors.push("Un email valide est requis");
-  if (!companyData.phone) errors.push("Le numéro de téléphone est requis");
-
-  return errors;
-}
-
-// Validation de l'email
-function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-// Middleware pour vérifier si l'ID de l'entreprise est valide
-function validateCompanyId(req: Request, res: Response, next: Function): void {
-  const companyId = parseInt(req.params.id);
-  if (isNaN(companyId)) {
-    res.status(400).json({ error: "ID d'entreprise invalide" });
-    return;
+// Middleware pour gérer les erreurs de validation
+const handleValidationErrors = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
   next();
-}
+};
 
-export const getAllCompanies = async (
+// Obtenir tous les documents
+export const getAllDocuments = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const companies = await executeQuery<CompanyData[]>(
-      "SELECT * FROM companies"
-    );
-    res.status(200).json(companies);
+    const documents = await executeQuery("SELECT * FROM documents");
+    res.status(200).json(documents);
   } catch (error) {
-    console.error("Erreur lors de la récupération des entreprises :", error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la récupération des entreprises",
-      });
+    console.error("Erreur lors de la récupération des documents :", error);
+    res.status(500).json({
+      message: "Erreur serveur lors de la récupération des documents",
+    });
   }
 };
 
-export const getCompanyById = async (
+// Obtenir un document par ID
+export const getDocumentById = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const companyId = parseInt(req.params.id);
-    const company = await executeQuery<CompanyData[]>(
-      "SELECT * FROM companies WHERE id = ?",
-      [companyId]
+    const { id } = req.params;
+    const document: any[] = await executeQuery(
+      "SELECT * FROM documents WHERE id = ?",
+      [id]
     );
-    if (company.length === 0) {
-      res.status(404).json({ error: "Entreprise non trouvée" });
-      return;
-    }
-    res.status(200).json(company[0]);
-  } catch (error) {
-    console.error("Erreur lors de la récupération de l'entreprise :", error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la récupération de l'entreprise",
-      });
-  }
-};
 
-export const createCompany = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const companyData: CompanyData = req.body;
-    const validationErrors = validateCompanyData(companyData);
-
-    if (validationErrors.length > 0) {
-      res.status(400).json({ errors: validationErrors });
+    if (!document || document.length === 0) {
+      res.status(404).json({ message: "Document non trouvé" });
       return;
     }
 
-    await executeQuery(
-      "INSERT INTO companies (name, registrationNumber, address, postalCode, city, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [
-        companyData.name,
-        companyData.registrationNumber,
-        companyData.address,
-        companyData.postalCode,
-        companyData.city,
-        companyData.phone,
-        companyData.email,
-      ]
-    );
-
-    res.status(201).json({ message: "Entreprise créée avec succès" });
+    res.status(200).json(document[0]);
   } catch (error) {
-    console.error("Erreur lors de la création de l'entreprise :", error);
+    console.error("Erreur lors de la récupération du document :", error);
     res
       .status(500)
-      .json({
-        error: "Une erreur s'est produite lors de la création de l'entreprise",
-      });
+      .json({ message: "Erreur serveur lors de la récupération du document" });
   }
 };
 
-export const updateCompany = async (
+// Créer un nouveau document
+export const createDocument = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const companyId = parseInt(req.params.id);
-    const companyData: Partial<CompanyData> = req.body;
-    if (Object.keys(companyData).length === 0) {
-      res
-        .status(400)
-        .json({ error: "Aucune donnée fournie pour la mise à jour" });
+    const { title, type, content, folderId } = req.body;
+
+    const result = (await executeQuery(
+      "INSERT INTO documents (title, type, content, folderId) VALUES (?, ?, ?, ?)",
+      [title, type, content, folderId]
+    )) as { insertId: number };
+
+    const newDocument = (await executeQuery(
+      "SELECT * FROM documents WHERE id = ?",
+      [result.insertId]
+    )) as any[];
+
+    res.status(201).json(newDocument[0]);
+  } catch (error) {
+    console.error("Erreur lors de la création du document :", error);
+    res
+      .status(500)
+      .json({ message: "Erreur serveur lors de la création du document" });
+  }
+};
+
+// Mettre à jour un document existant
+export const updateDocument = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title, type, content, folderId } = req.body;
+
+    const document = (await executeQuery(
+      "SELECT * FROM documents WHERE id = ?",
+      [id]
+    )) as any[];
+
+    if (!document || document.length === 0) {
+      res.status(404).json({ message: "Document non trouvé" });
       return;
     }
 
     await executeQuery(
-      "UPDATE companies SET name = ?, registrationNumber = ?, address = ?, postalCode = ?, city = ?, phone = ?, email = ? WHERE id = ?",
-      [
-        companyData.name,
-        companyData.registrationNumber,
-        companyData.address,
-        companyData.postalCode,
-        companyData.city,
-        companyData.phone,
-        companyData.email,
-        companyId,
-      ]
+      "UPDATE documents SET title = ?, type = ?, content = ?, folderId = ? WHERE id = ?",
+      [title, type, content, folderId, id]
     );
 
-    res.status(200).json({ message: "Entreprise mise à jour avec succès" });
+    const updatedDocument = (await executeQuery(
+      "SELECT * FROM documents WHERE id = ?",
+      [id]
+    )) as any[];
+
+    res.status(200).json(updatedDocument[0]);
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'entreprise :", error);
+    console.error("Erreur lors de la mise à jour du document :", error);
     res
       .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la mise à jour de l'entreprise",
-      });
+      .json({ message: "Erreur serveur lors de la mise à jour du document" });
   }
 };
 
-export const deleteCompany = async (
+// Supprimer un document
+export const deleteDocument = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const companyId = parseInt(req.params.id);
+    const { id } = req.params;
 
-    await executeQuery("DELETE FROM companies WHERE id = ?", [companyId]);
-    res.status(200).json({ message: "Entreprise supprimée avec succès" });
+    const document = (await executeQuery(
+      "SELECT * FROM documents WHERE id = ?",
+      [id]
+    )) as any[];
+
+    if (!document || document.length === 0) {
+      res.status(404).json({ message: "Document non trouvé" });
+      return;
+    }
+
+    await executeQuery("DELETE FROM documents WHERE id = ?", [id]);
+
+    res.status(204).send();
   } catch (error) {
-    console.error("Erreur lors de la suppression de l'entreprise :", error);
+    console.error("Erreur lors de la suppression du document :", error);
     res
       .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la suppression de l'entreprise",
-      });
+      .json({ message: "Erreur serveur lors de la suppression du document" });
   }
 };
