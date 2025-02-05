@@ -9,6 +9,8 @@ const ClientsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState<Client[]>([]);
   const [isAddingClient, setIsAddingClient] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -16,10 +18,8 @@ const ClientsPage: React.FC = () => {
         const fetchedClients = await ClientService.fetchAll();
         setClients(fetchedClients);
       } catch (error) {
-        console.error(
-          "Erreur lors de la r\u00e9cup\u00e9ration des clients",
-          error
-        );
+        console.error("Erreur lors de la récupération des clients", error);
+        setErrorMessage("Impossible de charger la liste des clients.");
       }
     };
     fetchClients();
@@ -34,19 +34,25 @@ const ClientsPage: React.FC = () => {
       const clientToAdd = await ClientService.create(newClient);
       if (clientToAdd) {
         setClients([...clients, clientToAdd]);
+        setSuccessMessage("Client ajouté avec succès.");
       }
       setIsAddingClient(false);
     } catch (error) {
       console.error("Erreur lors de l'ajout du client", error);
+      setErrorMessage("Erreur lors de l'ajout du client.");
     }
   };
 
   const handleDeleteClient = async (clientId: number) => {
-    try {
-      await ClientService.delete(clientId);
-      setClients(clients.filter((client) => client.id !== clientId));
-    } catch (error) {
-      console.error("Erreur lors de la suppression du client", error);
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?")) {
+      try {
+        await ClientService.delete(clientId);
+        setClients(clients.filter((client) => client.id !== clientId));
+        setSuccessMessage("Client supprimé avec succès.");
+      } catch (error) {
+        console.error("Erreur lors de la suppression du client", error);
+        setErrorMessage("Erreur lors de la suppression du client.");
+      }
     }
   };
 
@@ -67,6 +73,11 @@ const ClientsPage: React.FC = () => {
           <Plus className="mr-2" /> Nouveau Client
         </button>
       </div>
+
+      {successMessage && (
+        <p className="text-green-500 mb-4">{successMessage}</p>
+      )}
+      {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
 
       {isAddingClient && (
         <div className="mb-6">

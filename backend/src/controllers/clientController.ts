@@ -1,5 +1,18 @@
 import { Request, Response } from "express";
 import { executeQuery } from "../config/database";
+import multer from "multer";
+import path from "path";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+export const upload = multer({ storage });
 
 interface ClientData {
   name: string;
@@ -10,6 +23,7 @@ interface ClientData {
   city: string;
   imageUrl?: string;
   comments?: string;
+  creationDate?: string;
 }
 
 function validateClientData(clientData: ClientData): string[] {
@@ -28,6 +42,7 @@ function validateEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
+// Récupérer tous les clients
 export const getAllClients = async (
   req: Request,
   res: Response
@@ -41,6 +56,7 @@ export const getAllClients = async (
   }
 };
 
+// Récupérer un client par son ID
 export const getClientById = async (
   req: Request,
   res: Response
@@ -70,31 +86,45 @@ export const getClientById = async (
   }
 };
 
+// Créer un nouveau client
 export const createClient = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
     const clientData: ClientData = req.body;
-    const validationErrors = validateClientData(clientData);
 
+    // Gestion du fichier d'image
+    if (req.file) {
+      clientData.imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    // Validation des données
+    const validationErrors = validateClientData(clientData);
     if (validationErrors.length > 0) {
       res.status(400).json({ errors: validationErrors });
       return;
     }
 
+    // Ajout de la date de création
+    clientData.creationDate = new Date().toISOString();
+
+    // Préparation des données pour éviter les valeurs undefined
+    const preparedData = [
+      clientData.name || null,
+      clientData.email || null,
+      clientData.phone || null,
+      clientData.address || null,
+      clientData.postalCode || null,
+      clientData.city || null,
+      clientData.imageUrl || null,
+      clientData.comments || null,
+      clientData.creationDate || null,
+    ];
+
     await executeQuery(
-      "INSERT INTO clients (name, email, phone, address, postalCode, city, imageUrl, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        clientData.name,
-        clientData.email,
-        clientData.phone,
-        clientData.address,
-        clientData.postalCode,
-        clientData.city,
-        clientData.imageUrl,
-        clientData.comments,
-      ]
+      "INSERT INTO clients (name, email, phone, address, postalCode, city, imageUrl, comments, creationDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      preparedData
     );
 
     res.status(201).json({ message: "Client created successfully" });
@@ -106,6 +136,7 @@ export const createClient = async (
   }
 };
 
+// Mettre à jour un client
 export const updateClient = async (
   req: Request,
   res: Response
@@ -118,24 +149,33 @@ export const updateClient = async (
     }
 
     const clientData: Partial<ClientData> = req.body;
+
     if (Object.keys(clientData).length === 0) {
       res.status(400).json({ error: "No data provided to update" });
       return;
     }
 
+    // Gestion du fichier d'image
+    if (req.file) {
+      clientData.imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    // Préparation des données pour éviter les valeurs undefined
+    const preparedData = [
+      clientData.name || null,
+      clientData.email || null,
+      clientData.phone || null,
+      clientData.address || null,
+      clientData.postalCode || null,
+      clientData.city || null,
+      clientData.imageUrl || null,
+      clientData.comments || null,
+      clientId,
+    ];
+
     await executeQuery(
       "UPDATE clients SET name = ?, email = ?, phone = ?, address = ?, postalCode = ?, city = ?, imageUrl = ?, comments = ? WHERE id = ?",
-      [
-        clientData.name,
-        clientData.email,
-        clientData.phone,
-        clientData.address,
-        clientData.postalCode,
-        clientData.city,
-        clientData.imageUrl,
-        clientData.comments,
-        clientId,
-      ]
+      preparedData
     );
 
     res.status(200).json({ message: "Client updated successfully" });
@@ -147,6 +187,7 @@ export const updateClient = async (
   }
 };
 
+// Supprimer un client
 export const deleteClient = async (
   req: Request,
   res: Response

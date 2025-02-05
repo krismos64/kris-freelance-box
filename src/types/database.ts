@@ -4,7 +4,6 @@ interface BaseEntity {
   updatedAt?: Date;
 }
 
-// Interface Client
 export interface Client extends BaseEntity {
   name: string;
   address?: string;
@@ -14,6 +13,7 @@ export interface Client extends BaseEntity {
   phone?: string;
   imageUrl?: string;
   comments?: string;
+  creationDate?: string;
 }
 
 // Interface Task

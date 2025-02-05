@@ -25,7 +25,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("Erreur API :", error.response || error.message);
+    console.error("Erreur API :", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
@@ -43,13 +43,26 @@ export const ClientService = {
     return response.data;
   },
 
-  async create(clientData: Partial<Client>): Promise<Client> {
-    const response = await apiClient.post("/clients", clientData);
+  async create(clientData: Partial<Client> | FormData): Promise<Client> {
+    const response = await apiClient.post("/clients", clientData, {
+      headers:
+        clientData instanceof FormData
+          ? { "Content-Type": "multipart/form-data" }
+          : {},
+    });
     return response.data;
   },
 
-  async update(clientId: number, clientData: Partial<Client>): Promise<Client> {
-    const response = await apiClient.put(`/clients/${clientId}`, clientData);
+  async update(
+    clientId: number,
+    clientData: Partial<Client> | FormData
+  ): Promise<Client> {
+    const response = await apiClient.put(`/clients/${clientId}`, clientData, {
+      headers:
+        clientData instanceof FormData
+          ? { "Content-Type": "multipart/form-data" }
+          : {},
+    });
     return response.data;
   },
 

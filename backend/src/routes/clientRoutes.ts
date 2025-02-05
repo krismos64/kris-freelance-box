@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { body, param, validationResult } from "express-validator";
 import * as clientController from "../controllers/clientController";
+import { upload } from "../controllers/clientController";
 
 const router = Router();
 
-// Middleware de validation des résultats
-const validateRequest = (req: any, res: any, next: any) => {
+const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -29,6 +29,7 @@ router.get(
 
 router.post(
   "/",
+  upload.single("image"),
   [
     body("name")
       .isString()
@@ -46,6 +47,7 @@ router.post(
 
 router.put(
   "/:id",
+  upload.single("image"),
   [
     param("id")
       .isInt({ min: 1 })

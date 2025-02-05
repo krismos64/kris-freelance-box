@@ -15,6 +15,9 @@ const ClientDetailsPage: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     undefined
   );
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const imageFileRef = useRef<File | null>(null);
 
   useEffect(() => {
     const fetchClient = async () => {
@@ -25,28 +28,22 @@ const ClientDetailsPage: React.FC = () => {
           setEditedClient(fetchedClient || {});
           setImagePreview(fetchedClient?.imageUrl);
         } catch (error) {
-          console.error(
-            "Erreur lors de la r\u00e9cup\u00e9ration du client",
-            error
-          );
+          console.error("Erreur lors de la récupération du client", error);
         }
       }
     };
     fetchClient();
   }, [id]);
 
-  if (!client) return <div>Client non trouv\u00e9</div>;
+  if (!client) return <div>Client non trouvé</div>;
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      imageFileRef.current = file;
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
-        setEditedClient((prev) => ({
-          ...prev,
-          imageUrl: reader.result as string,
-        }));
       };
       reader.readAsDataURL(file);
     }
@@ -55,16 +52,42 @@ const ClientDetailsPage: React.FC = () => {
   const handleSave = async () => {
     if (editedClient && id) {
       try {
+        if (!editedClient.name) {
+          setErrorMessage("Le nom est obligatoire.");
+          return;
+        }
+        const clientData = new FormData();
+        Object.entries(editedClient).forEach(([key, value]) => {
+          if (value) {
+            clientData.append(key, value.toString());
+          }
+        });
+        if (imageFileRef.current) {
+          clientData.append("image", imageFileRef.current);
+        }
+
         const updatedClient = await ClientService.update(
           Number(id),
-          editedClient
+          clientData
         );
         if (updatedClient) {
           setClient(updatedClient);
           setIsEditing(false);
+          setSuccessMessage("Client mis à jour avec succès.");
         }
       } catch (error) {
-        console.error("Erreur lors de la mise \u00e0 jour du client", error);
+        console.error("Erreur lors de la mise à jour du client", error);
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?")) {
+      try {
+        await ClientService.delete(client.id);
+        navigate("/clients");
+      } catch (error) {
+        console.error("Erreur lors de la suppression du client", error);
       }
     }
   };
@@ -88,10 +111,14 @@ const ClientDetailsPage: React.FC = () => {
         >
           <ArrowLeft />
         </button>
-        <h1 className="text-3xl font-bold text-white">
-          D\u00e9tails du Client
-        </h1>
+        <h1 className="text-3xl font-bold text-white">Détails du Client</h1>
       </div>
+
+      {successMessage && (
+        <p className="text-green-500 mb-4">{successMessage}</p>
+      )}
+
+      {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-1 bg-white/10 rounded-xl p-6">
@@ -128,6 +155,7 @@ const ClientDetailsPage: React.FC = () => {
                 onChange={handleChange}
                 name="name"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
+                required
               />
               <input
                 type="email"
@@ -143,6 +171,30 @@ const ClientDetailsPage: React.FC = () => {
                 name="phone"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
+              <input
+                type="text"
+                value={editedClient.address || ""}
+                onChange={handleChange}
+                name="address"
+                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
+                placeholder="Adresse"
+              />
+              <input
+                type="text"
+                value={editedClient.postalCode || ""}
+                onChange={handleChange}
+                name="postalCode"
+                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
+                placeholder="Code Postal"
+              />
+              <input
+                type="text"
+                value={editedClient.city || ""}
+                onChange={handleChange}
+                name="city"
+                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
+                placeholder="Ville"
+              />
               <textarea
                 value={editedClient.comments || ""}
                 onChange={handleChange}
@@ -156,6 +208,9 @@ const ClientDetailsPage: React.FC = () => {
               <h2 className="text-2xl font-bold">{client.name}</h2>
               <p className="text-gray-400">{client.email}</p>
               <p className="text-gray-400">{client.phone}</p>
+              <p className="text-gray-400">
+                {client.address}, {client.postalCode} {client.city}
+              </p>
               <p className="mt-4 text-sm">{client.comments}</p>
             </div>
           )}
@@ -177,9 +232,7 @@ const ClientDetailsPage: React.FC = () => {
               </button>
             )}
             <button
-              onClick={() =>
-                ClientService.delete(client.id).then(() => navigate("/clients"))
-              }
+              onClick={handleDelete}
               className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Trash2 className="mr-2" /> Supprimer
