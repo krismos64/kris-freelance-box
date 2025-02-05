@@ -79,6 +79,16 @@ const InvoicesPage: React.FC = () => {
               "",
           }}
           type="invoice"
+          company={{
+            companyName: "Nom de l'entreprise",
+            address: "Adresse de l'entreprise",
+            email: "email@entreprise.com",
+            siretNumber: "123456789",
+            postalCode: "75001",
+            city: "Paris",
+            phone: "0123456789",
+            id: 1,
+          }}
           onClose={() => setSelectedInvoice(null)}
         />
       )}
@@ -130,7 +140,9 @@ const InvoicesPage: React.FC = () => {
               </h3>
               <p className="text-gray-400">
                 {getClientName(invoice.clientId)} -{" "}
-                {new Date(invoice.creationDate).toLocaleDateString()}
+                {invoice.creationDate
+                  ? new Date(invoice.creationDate).toLocaleDateString()
+                  : ""}
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -150,6 +162,16 @@ const InvoicesPage: React.FC = () => {
                       city: "",
                       postalCode: "",
                       creationDate: new Date(),
+                    },
+                    {
+                      companyName: "Nom de l'entreprise",
+                      address: "Adresse de l'entreprise",
+                      email: "email@entreprise.com",
+                      siretNumber: "123456789",
+                      postalCode: "75001",
+                      city: "Paris",
+                      phone: "0123456789",
+                      id: 1,
                     }
                   )
                 }

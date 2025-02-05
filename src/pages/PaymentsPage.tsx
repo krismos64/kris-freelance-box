@@ -122,6 +122,7 @@ const PaymentsPage: React.FC = () => {
             <PaymentForm
               onSubmit={handleSavePayment}
               onCancel={() => setIsAddingPayment(false)}
+              invoices={invoices}
             />
           </div>
         )}

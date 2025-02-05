@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { Save, X, Plus, Trash2 } from "lucide-react";
 import { Quote } from "../../types/database";
 import { QuoteService } from "../../services/api";
-import { mockClients } from "../../mocks/mockData";
+import { Client } from "../../types/database";
 
 interface QuoteFormProps {
   quote?: Quote;
+  clients: Client[];
   onSubmit: (quote: Partial<Quote>) => void;
   onCancel: () => void;
 }
@@ -15,18 +16,19 @@ interface QuoteItem {
   quantity: number;
   unitPrice: number;
 }
-
-const QuoteForm: React.FC<QuoteFormProps> = ({ quote, onSubmit, onCancel }) => {
+const QuoteForm: React.FC<QuoteFormProps> = ({
+  quote,
+  clients,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState<Partial<Quote>>({
     quoteNumber:
       quote?.quoteNumber ||
       `QUOTE-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`,
-    creationDate: quote?.creationDate || new Date().toISOString().split("T")[0],
+    creationDate: quote?.creationDate || new Date(),
     validUntil:
-      quote?.validUntil ||
-      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
+      quote?.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     clientId: quote?.clientId || undefined,
   });
 
@@ -130,8 +132,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ quote, onSubmit, onCancel }) => {
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           >
-            <option value="">Sélectionner un client</option>
-            {mockClients.map((client) => (
+            {clients.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name}
               </option>
@@ -143,7 +144,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ quote, onSubmit, onCancel }) => {
           <input
             type="date"
             name="creationDate"
-            value={formData.creationDate}
+            value={formData.creationDate?.toISOString().split("T")[0]}
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           />
@@ -153,7 +154,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({ quote, onSubmit, onCancel }) => {
           <input
             type="date"
             name="validUntil"
-            value={formData.validUntil}
+            value={formData.validUntil?.toISOString().split("T")[0]}
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           />

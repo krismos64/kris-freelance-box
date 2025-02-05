@@ -69,16 +69,108 @@ export const ClientService = {
   async delete(clientId: number): Promise<void> {
     await apiClient.delete(`/clients/${clientId}`);
   },
+
+  async search(searchTerm: string): Promise<Client[]> {
+    const response = await apiClient.get(`/clients/search`, {
+      params: { q: searchTerm },
+    });
+    return response.data;
+  },
 };
 
-export const CompanyService = {
-  async fetchCompanyInfo(): Promise<any> {
-    const response = await apiClient.get("/company");
+export const InvoiceService = {
+  async fetchAll(): Promise<Invoice[]> {
+    const response = await apiClient.get("/invoices");
     return response.data;
   },
 
-  async updateCompanyInfo(companyData: Partial<any>): Promise<any> {
-    const response = await apiClient.put("/company", companyData);
+  async fetchById(invoiceId: number): Promise<Invoice> {
+    const response = await apiClient.get(`/invoices/${invoiceId}`);
+    return response.data;
+  },
+
+  async create(invoiceData: Partial<Invoice>): Promise<Invoice> {
+    const response = await apiClient.post("/invoices", invoiceData);
+    return response.data;
+  },
+
+  async update(
+    invoiceId: number,
+    invoiceData: Partial<Invoice>
+  ): Promise<Invoice> {
+    const response = await apiClient.put(`/invoices/${invoiceId}`, invoiceData);
+    return response.data;
+  },
+
+  async delete(invoiceId: number): Promise<void> {
+    await apiClient.delete(`/invoices/${invoiceId}`);
+  },
+
+  async search(searchTerm: string): Promise<Invoice[]> {
+    const response = await apiClient.get(`/invoices/search`, {
+      params: { q: searchTerm },
+    });
+    return response.data;
+  },
+};
+
+export const QuoteService = {
+  async fetchAll(): Promise<Quote[]> {
+    const response = await apiClient.get("/quotes");
+    return response.data;
+  },
+
+  async fetchById(quoteId: number): Promise<Quote> {
+    const response = await apiClient.get(`/quotes/${quoteId}`);
+    return response.data;
+  },
+
+  async create(quoteData: Partial<Quote>): Promise<Quote> {
+    const response = await apiClient.post("/quotes", quoteData);
+    return response.data;
+  },
+
+  async update(quoteId: number, quoteData: Partial<Quote>): Promise<Quote> {
+    const response = await apiClient.put(`/quotes/${quoteId}`, quoteData);
+    return response.data;
+  },
+
+  async delete(quoteId: number): Promise<void> {
+    await apiClient.delete(`/quotes/${quoteId}`);
+  },
+
+  async search(searchTerm: string): Promise<Quote[]> {
+    const response = await apiClient.get(`/quotes/search`, {
+      params: { q: searchTerm },
+    });
+    return response.data;
+  },
+};
+
+export const TaskService = {
+  async fetchAll(): Promise<Task[]> {
+    const response = await apiClient.get("/tasks");
+    return response.data;
+  },
+
+  async create(taskData: Partial<Task>): Promise<Task> {
+    const response = await apiClient.post("/tasks", taskData);
+    return response.data;
+  },
+
+  async update(taskId: number, taskData: Partial<Task>): Promise<Task> {
+    const response = await apiClient.put(`/tasks/${taskId}`, taskData);
+    return response.data;
+  },
+
+  async delete(taskId: number): Promise<void> {
+    await apiClient.delete(`/tasks/${taskId}`);
+  },
+
+  async search(searchTerm: string): Promise<Task[]> {
+    const response = await apiClient.get(`/tasks/search`, {
+      params: { q: searchTerm },
+    });
     return response.data;
   },
 };
@@ -131,34 +223,24 @@ export const DocumentService = {
   async delete(documentId: number): Promise<void> {
     await apiClient.delete(`/documents/${documentId}`);
   },
+
+  async search(searchTerm: string): Promise<Document[]> {
+    const response = await apiClient.get(`/documents/search`, {
+      params: { q: searchTerm },
+    });
+    return response.data;
+  },
 };
 
-export const InvoiceService = {
-  async fetchAll(): Promise<Invoice[]> {
-    const response = await apiClient.get("/invoices");
+export const CompanyService = {
+  async fetchCompanyInfo(): Promise<any> {
+    const response = await apiClient.get("/company");
     return response.data;
   },
 
-  async fetchById(invoiceId: number): Promise<Invoice> {
-    const response = await apiClient.get(`/invoices/${invoiceId}`);
+  async updateCompanyInfo(companyData: Partial<any>): Promise<any> {
+    const response = await apiClient.put("/company", companyData);
     return response.data;
-  },
-
-  async create(invoiceData: Partial<Invoice>): Promise<Invoice> {
-    const response = await apiClient.post("/invoices", invoiceData);
-    return response.data;
-  },
-
-  async update(
-    invoiceId: number,
-    invoiceData: Partial<Invoice>
-  ): Promise<Invoice> {
-    const response = await apiClient.put(`/invoices/${invoiceId}`, invoiceData);
-    return response.data;
-  },
-
-  async delete(invoiceId: number): Promise<void> {
-    await apiClient.delete(`/invoices/${invoiceId}`);
   },
 };
 
@@ -178,57 +260,10 @@ export const PaymentService = {
   },
 };
 
-export const QuoteService = {
-  async fetchAll(): Promise<Quote[]> {
-    const response = await apiClient.get("/quotes");
-    return response.data;
-  },
-
-  async fetchById(quoteId: number): Promise<Quote> {
-    const response = await apiClient.get(`/quotes/${quoteId}`);
-    return response.data;
-  },
-
-  async create(quoteData: Partial<Quote>): Promise<Quote> {
-    const response = await apiClient.post("/quotes", quoteData);
-    return response.data;
-  },
-
-  async update(quoteId: number, quoteData: Partial<Quote>): Promise<Quote> {
-    const response = await apiClient.put(`/quotes/${quoteId}`, quoteData);
-    return response.data;
-  },
-
-  async delete(quoteId: number): Promise<void> {
-    await apiClient.delete(`/quotes/${quoteId}`);
-  },
-};
-
 export const RevenueService = {
   async fetchAll(): Promise<Revenue[]> {
     const response = await apiClient.get("/revenues");
     return response.data;
-  },
-};
-
-export const TaskService = {
-  async fetchAll(): Promise<Task[]> {
-    const response = await apiClient.get("/tasks");
-    return response.data;
-  },
-
-  async create(taskData: Partial<Task>): Promise<Task> {
-    const response = await apiClient.post("/tasks", taskData);
-    return response.data;
-  },
-
-  async update(taskId: number, taskData: Partial<Task>): Promise<Task> {
-    const response = await apiClient.put(`/tasks/${taskId}`, taskData);
-    return response.data;
-  },
-
-  async delete(taskId: number): Promise<void> {
-    await apiClient.delete(`/tasks/${taskId}`);
   },
 };
 

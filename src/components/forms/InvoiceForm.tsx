@@ -30,13 +30,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     invoiceNumber:
       invoice?.invoiceNumber ||
       `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`,
-    creationDate:
-      invoice?.creationDate || new Date().toISOString().split("T")[0],
+    creationDate: invoice?.creationDate || new Date(),
     dueDate:
-      invoice?.dueDate ||
-      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
+      invoice?.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     clientId: invoice?.clientId || undefined,
     total: invoice?.total || 0,
   });
@@ -163,7 +159,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           <input
             type="date"
             name="creationDate"
-            value={formData.creationDate || ""}
+            value={
+              formData.creationDate
+                ? new Date(formData.creationDate).toISOString().slice(0, 10)
+                : ""
+            }
             onChange={handleChange}
             className="w-full bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2"
           />
@@ -173,7 +173,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           <input
             type="date"
             name="dueDate"
-            value={formData.dueDate || ""}
+            value={
+              formData.dueDate
+                ? new Date(formData.dueDate).toISOString().slice(0, 10)
+                : ""
+            }
             onChange={handleChange}
             className="w-full bg-white/10 text-white border border-white/20 rounded-lg px-4 py-2"
           />

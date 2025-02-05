@@ -43,7 +43,7 @@ const SearchPage: React.FC = () => {
 
         const searchResults: SearchResult[] = [
           // Clients
-          ...clients.map((client) => ({
+          ...clients.map((client: Client) => ({
             type: "client" as const,
             id: client.id,
             title: client.name,
@@ -52,7 +52,7 @@ const SearchPage: React.FC = () => {
           })),
 
           // Invoices
-          ...invoices.map((invoice) => ({
+          ...invoices.map((invoice: Invoice) => ({
             type: "invoice" as const,
             id: invoice.id,
             title: invoice.invoiceNumber,
@@ -61,7 +61,7 @@ const SearchPage: React.FC = () => {
           })),
 
           // Quotes
-          ...quotes.map((quote) => ({
+          ...quotes.map((quote: Quote) => ({
             type: "quote" as const,
             id: quote.id,
             title: quote.quoteNumber,
@@ -70,7 +70,7 @@ const SearchPage: React.FC = () => {
           })),
 
           // Tasks
-          ...tasks.map((task) => ({
+          ...tasks.map((task: Task) => ({
             type: "task" as const,
             id: task.id,
             title: task.name,
@@ -79,7 +79,7 @@ const SearchPage: React.FC = () => {
           })),
 
           // Documents
-          ...documents.map((doc) => ({
+          ...documents.map((doc: Document) => ({
             type: "document" as const,
             id: doc.id,
             title: doc.name,

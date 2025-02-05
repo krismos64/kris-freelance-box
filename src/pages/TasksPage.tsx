@@ -22,7 +22,10 @@ const TasksPage: React.FC = () => {
 
   const toggleTaskCompletion = async (taskId: number) => {
     try {
-      const updatedTask = await TaskService.toggleCompletion(taskId);
+      const task = tasks.find((t) => t.id === taskId);
+      const updatedTask = await TaskService.update(taskId, {
+        completed: !task?.completed,
+      });
       setTasks(
         tasks.map((task) =>
           task.id === taskId

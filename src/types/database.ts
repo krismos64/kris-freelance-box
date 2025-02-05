@@ -13,7 +13,7 @@ export interface Client extends BaseEntity {
   phone?: string;
   imageUrl?: string;
   comments?: string;
-  creationDate?: string;
+  creationDate?: Date;
 }
 
 // Interface Task
@@ -24,17 +24,17 @@ export interface Task extends BaseEntity {
   dueDate?: Date;
 }
 
-// Interface Invoice
-export interface Invoice extends BaseEntity {
+// Interface Invoice - Héritant de Document
+export interface Invoice extends Document {
   invoiceNumber: string;
   issuedAt: Date;
   dueDate: Date;
   clientId: number;
-  pdfUrl?: string;
   total: number;
   status?: "draft" | "sent" | "paid" | "overdue";
   client?: Client;
   items?: InvoiceItem[];
+  creationDate?: Date;
 }
 
 // Interface InvoiceItem
@@ -44,16 +44,16 @@ export interface InvoiceItem {
   unitPrice: number;
 }
 
-// Interface Quote
-export interface Quote extends BaseEntity {
+// Interface Quote - Héritant de Document
+export interface Quote extends Document {
   quoteNumber: string;
   issuedAt: Date;
   validUntil: Date;
   clientId: number;
-  pdfUrl?: string;
   total: number;
   client?: Client;
   items?: QuoteItem[];
+  creationDate?: Date;
 }
 
 // Interface QuoteItem
@@ -71,11 +71,18 @@ export interface Document extends BaseEntity {
   uploadDate?: Date;
   pdfUrl: string;
   description?: string;
-  type?: DocumentType;
+  type: DocumentType; // Assurez-vous que ce champ est obligatoire
 }
 
-// Type DocumentType
-export type DocumentType = "legal" | "financial" | "contract" | "other";
+// Type DocumentType - Inclut "invoice" et "quote" pour correction des erreurs
+export type DocumentType =
+  | "legal"
+  | "financial"
+  | "contract"
+  | "other"
+  | "invoice"
+  | "document"
+  | "quote";
 
 // Interface Folder
 export interface Folder extends BaseEntity {

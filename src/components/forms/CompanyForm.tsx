@@ -132,7 +132,11 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
           <input
             type="date"
             name="foundedDate"
-            value={formData.foundedDate || ""}
+            value={
+              formData.foundedDate
+                ? new Date(formData.foundedDate).toISOString().split("T")[0]
+                : ""
+            }
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           />

@@ -3,7 +3,6 @@ import { Plus, Search, Filter, Eye, Trash2, Download } from "lucide-react";
 import { QuoteService, ClientService } from "../services/api";
 import { Quote, Client } from "../types/database";
 import QuoteForm from "../components/forms/QuoteForm";
-import { pdfGenerator } from "../services/pdfGenerator";
 import PDFViewer from "../components/PDFViewer";
 
 const QuotesPage: React.FC = () => {
@@ -12,6 +11,16 @@ const QuotesPage: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isAddingQuote, setIsAddingQuote] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [company, setCompany] = useState({
+    id: 1,
+    companyName: "Your Company Name",
+    address: "Your Company Address",
+    email: "company@email.com",
+    phone: "Your Phone Number",
+    siretNumber: "Your SIRET Number",
+    postalCode: "Your Postal Code",
+    city: "Your City",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,8 +39,22 @@ const QuotesPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+
+    try {
+      if (value) {
+        const searchResults = await QuoteService.search(value);
+        setQuotes(searchResults);
+      } else {
+        // Recharge les devis si le champ de recherche est vide
+        const allQuotes = await QuoteService.fetchAll();
+        setQuotes(allQuotes);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la recherche", error);
+    }
   };
 
   const handleAddQuote = async (newQuote: Partial<Quote>) => {
@@ -58,14 +81,6 @@ const QuotesPage: React.FC = () => {
     return client ? client.name : "Client inconnu";
   };
 
-  const filteredQuotes = quotes.filter(
-    (quote) =>
-      quote.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getClientName(quote.clientId)
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="p-6 bg-white/5 rounded-xl">
       {selectedQuote && (
@@ -78,6 +93,7 @@ const QuotesPage: React.FC = () => {
               clients.find((c) => c.id === selectedQuote.clientId)?.email || "",
           }}
           type="quote"
+          company={company}
           onClose={() => setSelectedQuote(null)}
         />
       )}
@@ -95,6 +111,7 @@ const QuotesPage: React.FC = () => {
       {isAddingQuote && (
         <div className="mb-6">
           <QuoteForm
+            clients={clients}
             onSubmit={handleAddQuote}
             onCancel={() => setIsAddingQuote(false)}
           />
@@ -118,7 +135,7 @@ const QuotesPage: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {filteredQuotes.map((quote) => (
+        {quotes.map((quote) => (
           <div
             key={quote.id}
             className="bg-white/10 backdrop-blur-md rounded-xl p-6 flex justify-between items-center"
@@ -129,31 +146,13 @@ const QuotesPage: React.FC = () => {
               </h3>
               <p className="text-gray-400">
                 {getClientName(quote.clientId)} -{" "}
-                {new Date(quote.creationDate).toLocaleDateString()}
+                {quote.creationDate
+                  ? new Date(quote.creationDate).toLocaleDateString()
+                  : "Date non définie"}
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-blue-400 font-bold">{quote.total} €</span>
-              <button
-                onClick={() =>
-                  pdfGenerator.generateQuotePDF(
-                    quote,
-                    clients.find((c) => c.id === quote.clientId) || {
-                      id: 0,
-                      name: "Client inconnu",
-                      email: "",
-                      phone: "",
-                      address: "",
-                      city: "",
-                      postalCode: "",
-                      creationDate: new Date(),
-                    }
-                  )
-                }
-                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
-              >
-                <Download />
-              </button>
               <button
                 onClick={() => setSelectedQuote(quote)}
                 className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"

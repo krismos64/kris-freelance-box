@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { X, Download } from "lucide-react";
 import jsPDF from "jspdf";
-import {
+import type {
   Invoice,
   Quote,
   Client,
   Company,
+  Document,
   DocumentType,
 } from "../types/database";
-import { mockCompany } from "../mocks/mockData";
 
 interface PDFViewerProps {
   document: Document;
   client: Client;
   type: DocumentType;
+  company: Company;
   onClose: () => void;
 }
 
@@ -21,20 +22,35 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   document,
   client,
   type,
+  company,
   onClose,
 }) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const isInvoice = (doc: any): doc is Invoice => doc.type === "invoice";
-  const isQuote = (doc: any): doc is Quote => doc.type === "quote";
+  const isInvoice = (doc: Document | unknown): doc is Invoice => {
+    const potentialInvoice = doc as Invoice;
+    return (
+      potentialInvoice.invoiceNumber !== undefined &&
+      potentialInvoice.items !== undefined
+    );
+  };
+
+  const isQuote = (doc: Document | unknown): doc is Quote => {
+    const potentialQuote = doc as Quote;
+    return (
+      potentialQuote.quoteNumber !== undefined &&
+      potentialQuote.items !== undefined
+    );
+  };
 
   const generatePDF = () => {
     const doc = new jsPDF();
 
     // En-tête de l'entreprise
     doc.setFontSize(10);
-    doc.text(`Entreprise: ${mockCompany.companyName}`, 20, 20);
-    doc.text(`Adresse: ${mockCompany.address}`, 20, 30);
+    doc.text(`Entreprise: ${company.companyName}`, 20, 20);
+    doc.text(`Adresse: ${company.address}`, 20, 30);
+    doc.text(`Email: ${company.email}`, 20, 40);
 
     // Titre du document
     doc.setFontSize(14);
@@ -57,12 +73,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           dueDate: new Date(document.dueDate).toLocaleDateString(),
           label: "Échéance",
         }
-      : {
-          date: new Date((document as Quote).issuedAt).toLocaleDateString(),
-          dueDate: new Date(
-            (document as Quote).validUntil
-          ).toLocaleDateString(),
+      : isQuote(document)
+      ? {
+          date: new Date(document.issuedAt).toLocaleDateString(),
+          dueDate: new Date(document.validUntil).toLocaleDateString(),
           label: "Valide jusqu'au",
+        }
+      : {
+          date: new Date().toLocaleDateString(),
+          dueDate: new Date().toLocaleDateString(),
+          label: "Date",
         };
 
     doc.text(`Date: ${details.date}`, 20, 90);
@@ -75,19 +95,23 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     let yPosition = 130;
     const items = isInvoice(document)
       ? document.items
-      : (document as Quote).items;
+      : isQuote(document)
+      ? document.items
+      : [];
 
     items?.forEach((item, index) => {
       doc.text(`${index + 1}. ${item.description}`, 20, yPosition);
       doc.text(`Quantité: ${item.quantity}`, 120, yPosition);
-      doc.text(`Prix unitaire: ${item.unitPrice}€`, 150, yPosition);
-      doc.text(`Total: ${item.quantity * item.unitPrice}€`, 180, yPosition);
+      doc.text(`Prix: ${item.unitPrice.toFixed(2)} €`, 180, yPosition);
       yPosition += 10;
     });
 
     // Total du document
     doc.setFontSize(14);
-    doc.text(`TOTAL: ${document.total}€`, 150, yPosition + 20);
+    const total =
+      items?.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) ||
+      0;
+    doc.text(`TOTAL: ${total.toFixed(2)} €`, 150, yPosition + 20);
 
     // Générer l'URL du PDF
     const pdfBlob = doc.output("blob");
@@ -122,7 +146,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           <h2 className="text-xl text-white">
             {isInvoice(document)
               ? `Facture N° ${document.invoiceNumber}`
-              : `Devis N° ${document.quoteNumber}`}
+              : isQuote(document)
+              ? `Devis N° ${document.quoteNumber}`
+              : "Document"}
           </h2>
           <div className="flex space-x-4">
             <button

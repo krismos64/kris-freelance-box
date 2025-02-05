@@ -2,14 +2,17 @@ import React, { useState } from "react";
 import { Save, X } from "lucide-react";
 import { PaymentService } from "../../services/api";
 import { Payment, Invoice } from "../../types/database";
-import { mockInvoices } from "../../mocks/mockData";
 
 interface PaymentFormProps {
   onSubmit: (payment: Partial<Payment>) => void;
   onCancel: () => void;
+  invoices: Invoice[];
 }
-
-const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit, onCancel }) => {
+const PaymentForm: React.FC<PaymentFormProps> = ({
+  onSubmit,
+  onCancel,
+  invoices,
+}) => {
   const [formData, setFormData] = useState<Partial<Payment>>({
     paymentMethod: "virement",
     status: "en attente",
@@ -44,8 +47,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit, onCancel }) => {
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           >
-            <option value="">Sélectionner une facture</option>
-            {mockInvoices.map((invoice: Invoice) => (
+            {invoices.map((invoice: Invoice) => (
               <option key={invoice.id} value={invoice.id}>
                 {invoice.invoiceNumber} - {invoice.total}€
               </option>
@@ -67,7 +69,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit, onCancel }) => {
           <input
             type="date"
             name="paymentDate"
-            value={formData.paymentDate || ""}
+            value={
+              formData.paymentDate instanceof Date
+                ? formData.paymentDate.toISOString().split("T")[0]
+                : formData.paymentDate || ""
+            }
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           />

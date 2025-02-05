@@ -286,7 +286,23 @@ const DocumentsPage: React.FC = () => {
       {/* Affichage conditionnel du PDFViewer */}
       {selectedDocument && isDocument(selectedDocument) && (
         <PDFViewer
-          documentData={selectedDocument}
+          document={selectedDocument}
+          client={{
+            id: 0,
+            name: "Nom du client", // Remplacez par les données réelles
+            email: "client@example.com",
+          }}
+          type="document"
+          company={{
+            companyName: "Nom de l'entreprise",
+            address: "Adresse de l'entreprise",
+            email: "email@entreprise.com",
+            siretNumber: "123456789",
+            postalCode: "75001",
+            city: "Paris",
+            phone: "0123456789",
+            id: 1,
+          }}
           onClose={() => setSelectedDocument(null)}
         />
       )}

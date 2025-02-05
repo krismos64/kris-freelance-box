@@ -12,7 +12,7 @@ const CompanyPage: React.FC = () => {
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        const company = await CompanyService.fetchCompany();
+        const company = await CompanyService.fetchCompanyInfo();
         if (company) {
           setCompanyData(company);
           setLogoPreview(company.logoUrl || "");
@@ -56,7 +56,7 @@ const CompanyPage: React.FC = () => {
   const handleSave = async () => {
     if (companyData) {
       try {
-        await CompanyService.updateCompany(companyData);
+        await CompanyService.updateCompanyInfo(companyData);
         console.log("Entreprise mise \u00e0 jour avec succ\u00e8s");
       } catch (error) {
         console.error("Erreur lors de la mise \u00e0 jour", error);
