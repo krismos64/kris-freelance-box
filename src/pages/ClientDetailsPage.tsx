@@ -24,6 +24,7 @@ const ClientDetailsPage: React.FC = () => {
       if (id) {
         try {
           const fetchedClient = await ClientService.fetchById(Number(id));
+          console.log("Image URL:", fetchedClient.imageUrl);
           setClient(fetchedClient);
           setEditedClient(fetchedClient || {});
           setImagePreview(fetchedClient?.imageUrl);

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import helmet from "helmet";
 import routes from "./routes";
+import path from "path";
 import testRoutes from "./routes/testRoutes";
 import { initializeDatabase } from "./config/database";
 import listEndpoints from "express-list-endpoints";
@@ -36,6 +37,7 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api", routes);

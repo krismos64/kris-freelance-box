@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { executeQuery } from "../config/database";
 import multer from "multer";
 import path from "path";
+import { format } from "date-fns";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -107,7 +108,7 @@ export const createClient = async (
     }
 
     // Ajout de la date de création
-    clientData.creationDate = new Date().toISOString();
+    clientData.creationDate = format(new Date(), "yyyy-MM-dd HH:mm:ss");
 
     // Préparation des données pour éviter les valeurs undefined
     const preparedData = [
