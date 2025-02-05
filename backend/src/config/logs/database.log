@@ -546,3 +546,147 @@
 [2025-02-05T10:59:57.975Z] INFO: Requête exécutée avec succès
 [2025-02-05T11:03:47.139Z] INFO: Exécution de la requête SQL : SELECT 1
 [2025-02-05T11:03:47.152Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:08:38.263Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:08:38.294Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.companies' doesn't exist
+[2025-02-05T11:08:38.300Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:08:38.302Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.companies' doesn't exist
+[2025-02-05T11:15:19.743Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-05T11:15:19.745Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:15:19.766Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:15:19.772Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.companies' doesn't exist
+[2025-02-05T11:15:19.775Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:15:19.777Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.companies' doesn't exist
+[2025-02-05T11:15:25.124Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:25.133Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:25.147Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:25.148Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:27.089Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:27.092Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:15:27.096Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:27.104Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.invoices' doesn't exist
+[2025-02-05T11:15:27.107Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:27.109Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:15:27.110Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:27.113Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.invoices' doesn't exist
+[2025-02-05T11:15:28.305Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:28.306Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-05T11:15:28.310Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:28.322Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.quotes' doesn't exist
+[2025-02-05T11:15:28.324Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:28.326Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-05T11:15:28.327Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:28.329Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.quotes' doesn't exist
+[2025-02-05T11:15:29.245Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:15:29.247Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:29.253Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-05T11:15:29.254Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.invoices' doesn't exist
+[2025-02-05T11:15:29.260Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:29.265Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.payments' doesn't exist
+[2025-02-05T11:15:29.271Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:15:29.271Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-05T11:15:29.272Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:15:29.273Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:15:29.277Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.payments' doesn't exist
+[2025-02-05T11:15:29.281Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.invoices' doesn't exist
+[2025-02-05T11:15:37.825Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:15:37.833Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.tasks' doesn't exist
+[2025-02-05T11:15:37.837Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:15:37.842Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.tasks' doesn't exist
+[2025-02-05T11:15:41.387Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:15:41.393Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.documents' doesn't exist
+[2025-02-05T11:15:41.396Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:15:41.397Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.documents' doesn't exist
+[2025-02-05T11:17:09.874Z] INFO: Création du pool de connexions...
+[2025-02-05T11:17:09.903Z] INFO: Connexion à la base de données initialisée avec succès
+[2025-02-05T11:17:28.045Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-05T11:17:28.055Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:17:32.152Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:17:32.170Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:17:32.178Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:17:32.180Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.clients' doesn't exist
+[2025-02-05T11:34:14.541Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-05T11:34:14.547Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:14.625Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:14.631Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:14.633Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:14.634Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:23.222Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:23.225Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:23.231Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:23.233Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:25.500Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:34:25.511Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:25.519Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:25.523Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:34:25.524Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:25.527Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:25.530Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:25.531Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:28.736Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-05T11:34:28.740Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:28.741Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:28.745Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:28.750Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:28.752Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-05T11:34:28.755Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:28.757Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:30.506Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-05T11:34:30.509Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:34:30.512Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:30.516Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:30.519Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:30.522Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:34:30.525Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-05T11:34:30.525Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:30.526Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:30.530Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:34:30.530Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:30.533Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:34.141Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:34:34.144Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:34.149Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:34:34.151Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:38.248Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:34:38.258Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:38.260Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:34:38.261Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:34:45.563Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:34:45.573Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.companies' doesn't exist
+[2025-02-05T11:34:45.580Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:34:45.581Z] ERROR: Erreur lors de l'exécution de la requête SQL : Table 'kris_freelancebox.companies' doesn't exist
+[2025-02-05T11:38:28.330Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:38:28.333Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:38:28.336Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:38:28.337Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:38:30.834Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:38:30.845Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:38:30.859Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:38:30.863Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:38:41.376Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:38:41.382Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:38:41.387Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-05T11:38:41.389Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:39:27.489Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:39:27.492Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:39:27.494Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:39:27.496Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:21.528Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:40:21.531Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:40:21.537Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:21.539Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:21.543Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-05T11:40:21.544Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-05T11:40:21.546Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:21.550Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:23.583Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:40:23.586Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:23.587Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:40:23.589Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:32.732Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:40:32.736Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:32.739Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-05T11:40:32.741Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:40.006Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:40:40.008Z] INFO: Requête exécutée avec succès
+[2025-02-05T11:40:40.010Z] INFO: Exécution de la requête SQL : SELECT * FROM companies
+[2025-02-05T11:40:40.013Z] INFO: Requête exécutée avec succès
