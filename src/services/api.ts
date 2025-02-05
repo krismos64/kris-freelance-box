@@ -11,6 +11,8 @@ import {
   ClientStats,
   TaskStats,
   InvoiceStats,
+  QuoteItem,
+  Company,
 } from "../types/database";
 
 // Configurer Axios avec l'URL de base de l'API
@@ -76,6 +78,11 @@ export const ClientService = {
     });
     return response.data;
   },
+
+  async fetchStatistics(): Promise<ClientStats> {
+    const response = await apiClient.get("/clients/stats");
+    return response.data;
+  },
 };
 
 export const InvoiceService = {
@@ -86,6 +93,11 @@ export const InvoiceService = {
 
   async fetchById(invoiceId: number): Promise<Invoice> {
     const response = await apiClient.get(`/invoices/${invoiceId}`);
+    return response.data;
+  },
+
+  async fetchStatistics(): Promise<InvoiceStats> {
+    const response = await apiClient.get("/invoices/stats");
     return response.data;
   },
 
@@ -145,11 +157,21 @@ export const QuoteService = {
     });
     return response.data;
   },
+
+  async fetchItems(quoteId: number): Promise<QuoteItem[]> {
+    const response = await apiClient.get(`/quotes/${quoteId}/items`);
+    return response.data;
+  },
 };
 
 export const TaskService = {
   async fetchAll(): Promise<Task[]> {
     const response = await apiClient.get("/tasks");
+    return response.data;
+  },
+
+  async fetchStatistics(): Promise<TaskStats> {
+    const response = await apiClient.get("/tasks/stats");
     return response.data;
   },
 
@@ -232,14 +254,41 @@ export const DocumentService = {
   },
 };
 
-export const CompanyService = {
-  async fetchCompanyInfo(): Promise<any> {
-    const response = await apiClient.get("/company");
+export const DashboardService = {
+  async fetchRevenues(): Promise<Revenue[]> {
+    const response = await apiClient.get("/dashboard/revenues");
     return response.data;
   },
 
-  async updateCompanyInfo(companyData: Partial<any>): Promise<any> {
-    const response = await apiClient.put("/company", companyData);
+  async fetchClientStats(): Promise<ClientStats> {
+    const response = await apiClient.get("/dashboard/clients/stats");
+    return response.data;
+  },
+
+  async fetchTaskStats(): Promise<TaskStats> {
+    const response = await apiClient.get("/dashboard/tasks/stats");
+    return response.data;
+  },
+
+  async fetchInvoiceStats(): Promise<InvoiceStats> {
+    const response = await apiClient.get("/dashboard/invoices/stats");
+    return response.data;
+  },
+
+  async fetchGlobalStatistics(): Promise<{
+    totalRevenue: number;
+    clientCount: number;
+    invoiceCount: number;
+    taskCount: number;
+  }> {
+    const response = await apiClient.get("/dashboard/global-stats");
+    return response.data;
+  },
+};
+
+export const RevenueService = {
+  async fetchAll(): Promise<Revenue[]> {
+    const response = await apiClient.get("/revenues");
     return response.data;
   },
 };
@@ -260,31 +309,14 @@ export const PaymentService = {
   },
 };
 
-export const RevenueService = {
-  async fetchAll(): Promise<Revenue[]> {
-    const response = await apiClient.get("/revenues");
-    return response.data;
-  },
-};
-
-export const DashboardService = {
-  async fetchRevenues(): Promise<Revenue[]> {
-    const response = await apiClient.get("/dashboard/revenues");
+export const CompanyService = {
+  async fetchCompanyInfo(): Promise<Company> {
+    const response = await apiClient.get("/company");
     return response.data;
   },
 
-  async fetchClientStats(): Promise<ClientStats> {
-    const response = await apiClient.get("/dashboard/client-stats");
-    return response.data;
-  },
-
-  async fetchTaskStats(): Promise<TaskStats> {
-    const response = await apiClient.get("/dashboard/task-stats");
-    return response.data;
-  },
-
-  async fetchInvoiceStats(): Promise<InvoiceStats> {
-    const response = await apiClient.get("/dashboard/invoice-stats");
+  async updateCompanyInfo(companyData: Partial<Company>): Promise<Company> {
+    const response = await apiClient.put("/company", companyData);
     return response.data;
   },
 };

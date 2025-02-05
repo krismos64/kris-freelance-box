@@ -110,11 +110,20 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Remplacer les URL ci-dessous par les endpoints API réels
+        // Appels aux nouveaux endpoints API
         const [revenueRes, clientRes, taskRes] = await Promise.all([
-          fetch("/api/revenues").then((res) => res.json()),
-          fetch("/api/clients/stats").then((res) => res.json()),
-          fetch("/api/tasks/stats").then((res) => res.json()),
+          fetch("/api/dashboard/revenues").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /revenues");
+            return res.json();
+          }),
+          fetch("/api/dashboard/clients/stats").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /clients/stats");
+            return res.json();
+          }),
+          fetch("/api/dashboard/tasks/stats").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /tasks/stats");
+            return res.json();
+          }),
         ]);
 
         // Traitement des données de revenus

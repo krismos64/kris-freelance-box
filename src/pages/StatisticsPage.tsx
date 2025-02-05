@@ -104,10 +104,22 @@ const StatisticsPage: React.FC = () => {
       try {
         // Appels API directs
         const [revenueRes, clientRes, taskRes, invoiceRes] = await Promise.all([
-          fetch("/api/revenues").then((res) => res.json()),
-          fetch("/api/clients/stats").then((res) => res.json()),
-          fetch("/api/tasks/stats").then((res) => res.json()),
-          fetch("/api/invoices/stats").then((res) => res.json()),
+          fetch("/api/statistics/revenues").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /revenues");
+            return res.json();
+          }),
+          fetch("/api/statistics/clients/stats").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /clients/stats");
+            return res.json();
+          }),
+          fetch("/api/statistics/tasks/stats").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /tasks/stats");
+            return res.json();
+          }),
+          fetch("/api/statistics/invoices/stats").then((res) => {
+            if (!res.ok) throw new Error("Erreur sur /invoices/stats");
+            return res.json();
+          }),
         ]);
 
         // Calcul des statistiques

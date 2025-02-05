@@ -5,8 +5,8 @@ import morgan from "morgan";
 import helmet from "helmet";
 import routes from "./routes";
 import testRoutes from "./routes/testRoutes";
-import { initializeDatabase } from "./config/database"; // Assurez-vous que le chemin est correct
-
+import { initializeDatabase } from "./config/database";
+import listEndpoints from "express-list-endpoints";
 dotenv.config();
 
 const app = express();
@@ -65,3 +65,5 @@ app.use(
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });
+
+console.log(listEndpoints(app));
