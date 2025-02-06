@@ -8,11 +8,13 @@ import path from "path";
 import testRoutes from "./routes/testRoutes";
 import { initializeDatabase } from "./config/database";
 import listEndpoints from "express-list-endpoints";
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 5002;
 
+// Initialisation de la base de données
 (async () => {
   try {
     await initializeDatabase();
@@ -26,6 +28,13 @@ const PORT = process.env.SERVER_PORT || 5002;
   }
 })();
 
+// Middleware pour rendre le dossier "uploads" accessible via "/uploads"
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+console.log(
+  "Dossier uploads accessible sur :",
+  path.join(__dirname, "../uploads")
+);
+
 // Middlewares
 app.use(helmet());
 app.use(
@@ -37,7 +46,6 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api", routes);

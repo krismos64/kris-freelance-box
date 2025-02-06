@@ -42,6 +42,7 @@ export const ClientService = {
 
   async fetchById(clientId: number): Promise<Client> {
     const response = await apiClient.get(`/clients/${clientId}`);
+    console.log("Client data récupérée :", response.data);
     return response.data;
   },
 

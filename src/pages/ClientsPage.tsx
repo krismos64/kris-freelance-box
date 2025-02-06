@@ -112,10 +112,19 @@ const ClientsPage: React.FC = () => {
           >
             <div className="flex items-center mb-4">
               <img
-                src={client.imageUrl || "https://via.placeholder.com/150"}
+                src={`http://localhost:5002${client.imageUrl}`}
                 alt={client.name}
-                className="w-16 h-16 rounded-full object-cover mr-4"
+                onError={(e) => {
+                  console.error(
+                    "Erreur de chargement de l'image :",
+                    client.imageUrl
+                  );
+                  (e.target as HTMLImageElement).src =
+                    "/images/default-placeholder.jpg";
+                }}
+                className="w-16 h-16 rounded-full object-cover"
               />
+
               <div>
                 <h3 className="text-xl font-bold text-white">{client.name}</h3>
                 <span className="text-sm text-blue-400">

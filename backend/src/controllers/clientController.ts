@@ -99,6 +99,7 @@ export const createClient = async (
     if (req.file) {
       clientData.imageUrl = `/uploads/${req.file.filename}`;
     }
+    console.log("Chemin de l'image enregistrée :", clientData.imageUrl);
 
     // Validation des données
     const validationErrors = validateClientData(clientData);
