@@ -67,6 +67,10 @@ const CompanyPage: React.FC = () => {
 
   const handleSave = async (companyData: Partial<Company>) => {
     if (!companyData.id) {
+      console.log(
+        "Données de l'entreprise avant la mise à jour :",
+        companyData
+      );
       console.error("⚠️ Impossible de mettre à jour : ID manquant !");
       setErrorMessage("ID de l'entreprise manquant.");
       return;

@@ -3,15 +3,10 @@ import { executeQuery } from "../config/database";
 
 const router = Router();
 
-router.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK" });
-});
-
-router.get("/test/db", async (req, res) => {
+router.get("/db", async (req, res) => {
   try {
-    // Exemple de requête test pour la base de données
-    await executeQuery("SELECT 1");
-    res.status(200).json({ isConnected: true });
+    await executeQuery("SELECT 1"); // Requête de test
+    res.status(200).json({ message: "Connexion à la base de données réussie" });
   } catch (error) {
     console.error("Erreur de connexion à la base de données :", error);
     res.status(500).json({ error: "Erreur de connexion à la base de données" });

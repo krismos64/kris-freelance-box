@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Save, X } from "lucide-react";
-import { CompanyService } from "../../services/api";
 import { Company } from "../../types/database";
 
 interface CompanyFormProps {
@@ -21,7 +20,6 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    console.log(`Champ modifié : ${name} = ${value}`);
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -39,10 +37,9 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
 
     const companyData = new FormData();
 
-    // Vérifie que les champs ne sont pas vides
+    // Ajoute les champs du formulaire au FormData
     Object.entries(formData).forEach(([key, value]) => {
       if (value) {
-        console.log(`Ajout du champ ${key} avec la valeur :`, value);
         companyData.append(key, value.toString());
       }
     });
@@ -51,9 +48,10 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
       companyData.append("logo", logoFile);
     }
 
-    console.log("FormData final :", Array.from(companyData as any));
+    console.log("FormData final :", Array.from((companyData as any).entries()));
 
-    onSubmit(companyData as unknown as Partial<Company>);
+    // Envoie les données au parent
+    onSubmit(formData as unknown as Partial<Company>);
   };
 
   return (

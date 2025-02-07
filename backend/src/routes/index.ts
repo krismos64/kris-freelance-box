@@ -28,4 +28,8 @@ router.use("/clients", (req, res, next) => {
   next();
 });
 
+router.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
+
 export default router;
