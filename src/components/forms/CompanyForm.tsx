@@ -15,20 +15,45 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = useState<Partial<Company>>(company);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev: Partial<Company>) => ({
+    console.log(`Champ modifié : ${name} = ${value}`);
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogoFile(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    const companyData = new FormData();
+
+    // Vérifie que les champs ne sont pas vides
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) {
+        console.log(`Ajout du champ ${key} avec la valeur :`, value);
+        companyData.append(key, value.toString());
+      }
+    });
+
+    if (logoFile) {
+      companyData.append("logo", logoFile);
+    }
+
+    console.log("FormData final :", Array.from(companyData as any));
+
+    onSubmit(companyData as unknown as Partial<Company>);
   };
 
   return (
@@ -41,8 +66,8 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
           <label className="block text-white mb-2">Nom de l'Entreprise</label>
           <input
             type="text"
-            name="companyName"
-            value={formData.companyName || ""}
+            name="name"
+            value={formData.name || ""}
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           />
@@ -51,8 +76,8 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
           <label className="block text-white mb-2">Numéro SIRET</label>
           <input
             type="text"
-            name="siretNumber"
-            value={formData.siretNumber || ""}
+            name="registrationNumber"
+            value={formData.registrationNumber || ""}
             onChange={handleChange}
             className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
           />
@@ -108,37 +133,12 @@ const CompanyForm: React.FC<CompanyFormProps> = ({
           />
         </div>
         <div>
-          <label className="block text-white mb-2">Identifiant Fiscal</label>
+          <label className="block text-white mb-2">Logo</label>
           <input
-            type="text"
-            name="taxIdentification"
-            value={formData.taxIdentification || ""}
-            onChange={handleChange}
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
-          />
-        </div>
-        <div>
-          <label className="block text-white mb-2">Secteur d'Activité</label>
-          <input
-            type="text"
-            name="businessSector"
-            value={formData.businessSector || ""}
-            onChange={handleChange}
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
-          />
-        </div>
-        <div>
-          <label className="block text-white mb-2">Date de Création</label>
-          <input
-            type="date"
-            name="foundedDate"
-            value={
-              formData.foundedDate
-                ? new Date(formData.foundedDate).toISOString().split("T")[0]
-                : ""
-            }
-            onChange={handleChange}
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+            type="file"
+            name="logo"
+            onChange={handleLogoChange}
+            className="w-full text-white"
           />
         </div>
       </div>

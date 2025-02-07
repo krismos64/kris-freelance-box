@@ -6,6 +6,7 @@ import helmet from "helmet";
 import routes from "./routes";
 import path from "path";
 import testRoutes from "./routes/testRoutes";
+import companyRoutes from "./routes/companyRoutes";
 import { initializeDatabase } from "./config/database";
 import listEndpoints from "express-list-endpoints";
 
@@ -49,9 +50,8 @@ app.use(express.json());
 
 // Routes API de base
 app.use("/api", routes);
-
-// Route spécifique pour les tests
-app.use("/api", testRoutes);
+app.use("/api/test", testRoutes);
+app.use("/api/company", companyRoutes);
 
 // Ajout des routes supplémentaires si manquantes
 app.get("/api/folders", (req, res) => {
@@ -65,6 +65,12 @@ app.get("/api/folders", (req, res) => {
 
 app.get("/api/statistics", (req, res) => {
   res.json({ users: 100, documents: 50, invoices: 10 });
+});
+
+// Middleware pour loguer toutes les requêtes reçues
+app.use((req, res, next) => {
+  console.log(`Requête reçue : ${req.method} ${req.originalUrl}`);
+  next();
 });
 
 // Gestion des routes non trouvées

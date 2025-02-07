@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { body, param, validationResult } from "express-validator";
+import multer from "multer";
 import * as companyController from "../controllers/companyController";
 
 const router = Router();
+const upload = multer({ dest: "uploads/" });
 
 // Middleware de validation des résultats
 const validateRequest = (req: any, res: any, next: any) => {
@@ -29,6 +31,7 @@ router.get(
 
 router.post(
   "/",
+  upload.single("logo"),
   [
     body("name")
       .isString()
@@ -53,6 +56,7 @@ router.post(
 
 router.put(
   "/:id",
+  upload.single("logo"),
   [
     param("id")
       .isInt({ min: 1 })

@@ -92,17 +92,14 @@ export interface Folder extends BaseEntity {
 
 // Interface Company
 export interface Company extends BaseEntity {
-  companyName: string;
-  siretNumber: string;
+  name: string;
+  registrationNumber: string;
   logoUrl?: string;
   address: string;
   postalCode: string;
   city: string;
   phone: string;
   email: string;
-  taxIdentification?: string;
-  businessSector?: string;
-  foundedDate?: Date;
 }
 
 // Interface Revenue

@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { executeQuery } from "../config/database";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 
 interface CompanyData {
   name: string;
@@ -9,6 +12,7 @@ interface CompanyData {
   city: string;
   phone: string;
   email: string;
+  logoUrl?: string;
 }
 
 function validateCompanyData(companyData: CompanyData): string[] {
@@ -40,12 +44,10 @@ export const getAllCompanies = async (
     res.status(200).json(companies);
   } catch (error) {
     console.error("Erreur lors de la récupération des entreprises :", error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la récupération des entreprises",
-      });
+    res.status(500).json({
+      error:
+        "Une erreur s'est produite lors de la récupération des entreprises",
+    });
   }
 };
 
@@ -72,12 +74,10 @@ export const getCompanyById = async (
     res.status(200).json(company[0]);
   } catch (error) {
     console.error("Erreur lors de la récupération de l'entreprise :", error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la récupération de l'entreprise",
-      });
+    res.status(500).json({
+      error:
+        "Une erreur s'est produite lors de la récupération de l'entreprise",
+    });
   }
 };
 
@@ -95,7 +95,7 @@ export const createCompany = async (
     }
 
     await executeQuery(
-      "INSERT INTO companies (name, registrationNumber, address, postalCode, city, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO companies (name, registrationNumber, address, postalCode, city, phone, email, logoUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [
         companyData.name,
         companyData.registrationNumber,
@@ -104,17 +104,16 @@ export const createCompany = async (
         companyData.city,
         companyData.phone,
         companyData.email,
+        companyData.logoUrl || null,
       ]
     );
 
     res.status(201).json({ message: "Entreprise créée avec succès" });
   } catch (error) {
     console.error("Erreur lors de la création de l'entreprise :", error);
-    res
-      .status(500)
-      .json({
-        error: "Une erreur s'est produite lors de la création de l'entreprise",
-      });
+    res.status(500).json({
+      error: "Une erreur s'est produite lors de la création de l'entreprise",
+    });
   }
 };
 
@@ -129,7 +128,13 @@ export const updateCompany = async (
       return;
     }
 
+    if (req.file) {
+      const logoPath = `/uploads/${req.file.filename}`;
+      req.body.logoUrl = logoPath;
+    }
+
     const companyData: Partial<CompanyData> = req.body;
+
     if (Object.keys(companyData).length === 0) {
       res
         .status(400)
@@ -137,19 +142,25 @@ export const updateCompany = async (
       return;
     }
 
-    await executeQuery(
-      "UPDATE companies SET name = ?, registrationNumber = ?, address = ?, postalCode = ?, city = ?, phone = ?, email = ? WHERE id = ?",
-      [
-        companyData.name,
-        companyData.registrationNumber,
-        companyData.address,
-        companyData.postalCode,
-        companyData.city,
-        companyData.phone,
-        companyData.email,
-        companyId,
-      ]
+    // Filtrer les champs définis uniquement
+    const fieldsToUpdate = Object.entries(companyData).filter(
+      ([_, value]) => value !== undefined
     );
+    if (fieldsToUpdate.length === 0) {
+      res
+        .status(400)
+        .json({ error: "Aucune donnée valide fournie pour la mise à jour" });
+      return;
+    }
+
+    // Générer dynamiquement la requête SQL
+    const query = `UPDATE companies SET ${fieldsToUpdate
+      .map(([key]) => `${key} = ?`)
+      .join(", ")} WHERE id = ?`;
+    const values = fieldsToUpdate.map(([_, value]) => value);
+    values.push(companyId.toString());
+
+    await executeQuery(query, values);
 
     res.status(200).json({ message: "Entreprise mise à jour avec succès" });
   } catch (error) {
@@ -178,11 +189,8 @@ export const deleteCompany = async (
     res.status(200).json({ message: "Entreprise supprimée avec succès" });
   } catch (error) {
     console.error("Erreur lors de la suppression de l'entreprise :", error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la suppression de l'entreprise",
-      });
+    res.status(500).json({
+      error: "Une erreur s'est produite lors de la suppression de l'entreprise",
+    });
   }
 };

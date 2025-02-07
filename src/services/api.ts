@@ -27,7 +27,11 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("Erreur API :", error.response?.data || error.message);
+    console.error("Erreur API :", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     return Promise.reject(error);
   }
 );
@@ -311,13 +315,18 @@ export const PaymentService = {
 };
 
 export const CompanyService = {
-  async fetchCompanyInfo(): Promise<Company> {
-    const response = await apiClient.get("/company");
+  async fetchCompanyInfo(companyId: number): Promise<Company> {
+    const response = await apiClient.get(`/company/${companyId}`);
     return response.data;
   },
 
-  async updateCompanyInfo(companyData: Partial<Company>): Promise<Company> {
-    const response = await apiClient.put("/company", companyData);
+  async updateCompanyInfo(
+    companyData: FormData,
+    companyId: number
+  ): Promise<Company> {
+    const response = await apiClient.put(`/company/${companyId}`, companyData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
   },
 };

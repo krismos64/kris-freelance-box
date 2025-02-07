@@ -8,19 +8,31 @@ const CompanyPage: React.FC = () => {
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        const company = await CompanyService.fetchCompanyInfo();
+        const companyId = 1; // Remplace par l'ID de l'entreprise si nécessaire
+        const company = await CompanyService.fetchCompanyInfo(companyId);
         if (company) {
           setCompanyData(company);
-          setLogoPreview(company.logoUrl || "");
+          setLogoPreview(company.logoUrl || "/images/default-placeholder.jpg");
         }
-      } catch (error) {
-        console.error(
-          "Erreur lors de la r\u00e9cup\u00e9ration des informations de l'entreprise",
-          error
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error(
+            "Erreur lors de la récupération des informations :",
+            error.message
+          );
+        } else {
+          console.error(
+            "Erreur inconnue lors de la récupération des informations :",
+            error
+          );
+        }
+        setErrorMessage(
+          "Une erreur est survenue lors de la récupération des données."
         );
       }
     };
@@ -53,16 +65,38 @@ const CompanyPage: React.FC = () => {
     }
   };
 
-  const handleSave = async () => {
-    if (companyData) {
-      try {
-        await CompanyService.updateCompanyInfo(companyData);
-        console.log("Entreprise mise \u00e0 jour avec succ\u00e8s");
-      } catch (error) {
-        console.error("Erreur lors de la mise \u00e0 jour", error);
+  const handleSave = async (companyData: Partial<Company>) => {
+    if (!companyData.id) {
+      console.error("⚠️ Impossible de mettre à jour : ID manquant !");
+      setErrorMessage("ID de l'entreprise manquant.");
+      return;
+    }
+
+    const formData = new FormData();
+    Object.entries(companyData).forEach(([key, value]) => {
+      if (value) {
+        formData.append(key, value.toString());
+      }
+    });
+
+    formData.forEach((value, key) => {
+      console.log(`Données envoyées à l'API : ${key} = ${value}`);
+    });
+
+    try {
+      await CompanyService.updateCompanyInfo(formData, companyData.id);
+      console.log("Entreprise mise à jour avec succès !");
+      setIsEditing(false);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erreur lors de la mise à jour :", error.message);
+        setErrorMessage(
+          "Une erreur est survenue lors de la mise à jour des données."
+        );
+      } else {
+        console.error("Erreur inconnue :", error);
       }
     }
-    setIsEditing(false);
   };
 
   if (!companyData) return <div>Chargement...</div>;
@@ -88,6 +122,8 @@ const CompanyPage: React.FC = () => {
           </button>
         </div>
 
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
         {isEditing ? (
           <CompanyForm
             company={companyData}
@@ -99,8 +135,16 @@ const CompanyPage: React.FC = () => {
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
               <div className="relative mb-6 flex justify-center">
                 <img
-                  src={logoPreview || "https://via.placeholder.com/150"}
+                  src={logoPreview}
                   alt="Logo de l'entreprise"
+                  onError={(e) => {
+                    console.error(
+                      "Erreur de chargement de l'image :",
+                      logoPreview
+                    );
+                    (e.target as HTMLImageElement).src =
+                      "/images/default-placeholder.jpg";
+                  }}
                   className="w-40 h-40 rounded-full object-cover"
                 />
                 <div className="absolute bottom-0 right-1/4">
@@ -125,37 +169,19 @@ const CompanyPage: React.FC = () => {
                   <label className="block text-white mb-2">
                     Nom de l'Entreprise
                   </label>
-                  <p className="text-white/80">{companyData.companyName}</p>
+                  <p className="text-white/80">{companyData.name}</p>
                 </div>
                 <div>
-                  <label className="block text-white mb-2">
-                    Num\u00e9ro SIRET
-                  </label>
-                  <p className="text-white/80">{companyData.siretNumber}</p>
-                </div>
-                <div>
-                  <label className="block text-white mb-2">
-                    Secteur d'Activit\u00e9
-                  </label>
-                  <p className="text-white/80">{companyData.businessSector}</p>
-                </div>
-                <div>
-                  <label className="block text-white mb-2">
-                    Date de Cr\u00e9ation
-                  </label>
+                  <label className="block text-white mb-2">Numéro SIRET</label>
                   <p className="text-white/80">
-                    {new Date(
-                      companyData.foundedDate || ""
-                    ).toLocaleDateString()}
+                    {companyData.registrationNumber}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">
-                Coordonn\u00e9es
-              </h3>
+              <h3 className="text-xl font-bold text-white mb-4">Coordonnées</h3>
               <div className="space-y-2 text-white/80">
                 <p>{companyData.address}</p>
                 <p>
