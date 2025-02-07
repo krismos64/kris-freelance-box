@@ -31,4 +31,12 @@ router.get("/tasks/stats", (req, res) => {
   res.json(taskStats);
 });
 
+// Données fictives pour les statistiques des factures
+const invoiceStats = { totalInvoices: 20, pendingInvoices: 5 };
+
+// Endpoint pour les statistiques des factures
+router.get("/invoices/stats", (req, res) => {
+  res.json(invoiceStats);
+});
+
 export default router;

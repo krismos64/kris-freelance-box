@@ -1972,3 +1972,59 @@
 [2025-02-07T13:23:05.016Z] INFO: Requête exécutée avec succès
 [2025-02-07T13:23:05.021Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
 [2025-02-07T13:23:05.023Z] INFO: Requête exécutée avec succès
+[2025-02-07T13:40:29.065Z] INFO: Création du pool de connexions...
+[2025-02-07T13:40:29.173Z] INFO: Connexion à la base de données initialisée avec succès
+[2025-02-07T13:40:43.012Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-07T13:40:43.030Z] INFO: Requête exécutée avec succès
+[2025-02-07T13:58:06.696Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-07T13:58:06.713Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:14.200Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-07T14:09:14.218Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:30.556Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:30.597Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:30.603Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:30.605Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:31.889Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:31.891Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-07T14:09:31.898Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:31.908Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:31.910Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:31.919Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:31.923Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-07T14:09:31.926Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:32.807Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:32.809Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-07T14:09:32.815Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:32.823Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:32.827Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:32.828Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:32.831Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-07T14:09:32.832Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:37.760Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-07T14:09:37.767Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-07T14:09:37.771Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:37.777Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:37.778Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-07T14:09:37.781Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:37.782Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:37.784Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-07T14:09:37.788Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:09:37.789Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:37.790Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:09:37.793Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:13:55.713Z] INFO: Création du pool de connexions...
+[2025-02-07T14:13:55.772Z] INFO: Connexion à la base de données initialisée avec succès
+[2025-02-07T14:14:26.795Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-07T14:14:26.839Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:16:20.911Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:16:20.943Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:16:20.948Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-07T14:16:20.956Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:16:27.674Z] INFO: Exécution de la requête SQL : SELECT * FROM companies WHERE id = ?
+[2025-02-07T14:16:27.687Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:16:27.691Z] INFO: Exécution de la requête SQL : SELECT * FROM companies WHERE id = ?
+[2025-02-07T14:16:27.694Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:16:44.791Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-07T14:16:44.798Z] INFO: Requête exécutée avec succès
+[2025-02-07T14:16:44.807Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-07T14:16:44.809Z] INFO: Requête exécutée avec succès

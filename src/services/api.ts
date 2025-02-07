@@ -37,7 +37,6 @@ apiClient.interceptors.response.use(
 );
 
 // Services liés à chaque entité
-
 export const ClientService = {
   async fetchAll(): Promise<Client[]> {
     const response = await apiClient.get("/clients");
