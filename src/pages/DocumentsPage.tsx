@@ -103,33 +103,34 @@ const FolderList: React.FC<{
           <span className="text-sm text-white/70">{documents.length}</span>
         </button>
 
-        {folders.map((folder) => (
-          <div key={folder.id} className="flex justify-between items-center">
-            <button
-              onClick={() => setSelectedFolder(folder.id)}
-              className={`flex-grow text-left p-2 rounded-lg flex justify-between items-center 
+        {Array.isArray(folders) &&
+          folders.map((folder) => (
+            <div key={folder.id} className="flex justify-between items-center">
+              <button
+                onClick={() => setSelectedFolder(folder.id)}
+                className={`flex-grow text-left p-2 rounded-lg flex justify-between items-center 
               ${
                 selectedFolder === folder.id
                   ? "bg-blue-600 text-white"
                   : "hover:bg-white/10"
               }`}
-            >
-              <div className="flex items-center">
-                <FolderIcon className="mr-2" />
-                <span>{folder.name}</span>
-              </div>
-              <span className="text-sm text-white/70">
-                {documents.filter((doc) => doc.folderId === folder.id).length}
-              </span>
-            </button>
-            <button
-              onClick={() => onDeleteFolder(folder.id)}
-              className="text-red-500 hover:text-red-700 ml-2"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        ))}
+              >
+                <div className="flex items-center">
+                  <FolderIcon className="mr-2" />
+                  <span>{folder.name}</span>
+                </div>
+                <span className="text-sm text-white/70">
+                  {documents.filter((doc) => doc.folderId === folder.id).length}
+                </span>
+              </button>
+              <button
+                onClick={() => onDeleteFolder(folder.id)}
+                className="text-red-500 hover:text-red-700 ml-2"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
       </div>
     </div>
   );

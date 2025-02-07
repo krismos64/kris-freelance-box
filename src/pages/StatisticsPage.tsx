@@ -8,25 +8,12 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { DashboardService } from "../services/api";
 
 // Types pour les données
 interface Revenue {
   monthName: string;
   amount: number;
-}
-
-interface ClientStats {
-  count: number;
-}
-
-interface TaskStats {
-  incompleteTasks: number;
-}
-
-interface InvoiceStats {
-  count: number;
-  quoteCount: number;
-  averageValue: number;
 }
 
 // Composant pour les cartes de statistiques
@@ -102,24 +89,12 @@ const StatisticsPage: React.FC = () => {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        // Appels API directs
+        // Appels API via le service DashboardService
         const [revenueRes, clientRes, taskRes, invoiceRes] = await Promise.all([
-          fetch("/api/statistics/revenues").then((res) => {
-            if (!res.ok) throw new Error("Erreur sur /revenues");
-            return res.json();
-          }),
-          fetch("/api/statistics/clients/stats").then((res) => {
-            if (!res.ok) throw new Error("Erreur sur /clients/stats");
-            return res.json();
-          }),
-          fetch("/api/statistics/tasks/stats").then((res) => {
-            if (!res.ok) throw new Error("Erreur sur /tasks/stats");
-            return res.json();
-          }),
-          fetch("/api/statistics/invoices/stats").then((res) => {
-            if (!res.ok) throw new Error("Erreur sur /invoices/stats");
-            return res.json();
-          }),
+          DashboardService.fetchRevenues(),
+          DashboardService.fetchClientStats(),
+          DashboardService.fetchTaskStats(),
+          DashboardService.fetchInvoiceStats(),
         ]);
 
         // Calcul des statistiques

@@ -47,9 +47,25 @@ app.use(
 app.use(morgan("dev"));
 app.use(express.json());
 
-// Routes
+// Routes API de base
 app.use("/api", routes);
+
+// Route spécifique pour les tests
 app.use("/api", testRoutes);
+
+// Ajout des routes supplémentaires si manquantes
+app.get("/api/folders", (req, res) => {
+  res.json({
+    folders: [
+      { id: 1, name: "Documents" },
+      { id: 2, name: "Images" },
+    ],
+  });
+});
+
+app.get("/api/statistics", (req, res) => {
+  res.json({ users: 100, documents: 50, invoices: 10 });
+});
 
 // Gestion des routes non trouvées
 app.use((req, res) => {

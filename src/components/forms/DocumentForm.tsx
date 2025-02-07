@@ -20,6 +20,8 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -34,7 +36,14 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validation basique du fichier
+      if (file.size > 5 * 1024 * 1024) {
+        // Limite de 5 Mo
+        setError("Le fichier est trop volumineux (max. 5 Mo).");
+        return;
+      }
       setFile(file);
+      setError(null);
     }
   };
 
@@ -44,6 +53,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
       setError("Veuillez sélectionner un fichier.");
       return;
     }
+    setIsSubmitting(true);
     try {
       const response = await DocumentService.upload(
         file,
@@ -51,11 +61,15 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
       );
       if (response) {
         onSubmit(response);
+        setSuccessMessage("Document téléchargé avec succès.");
+        setTimeout(() => setSuccessMessage(null), 3000);
       }
       onCancel();
     } catch (error) {
       console.error("Erreur lors de l'upload du document", error);
       setError("Une erreur est survenue lors du téléchargement du document.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -63,8 +77,10 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
     <form
       onSubmit={handleSubmit}
       className="bg-white/10 backdrop-blur-md rounded-xl p-6 space-y-4"
+      aria-live="polite"
     >
       {error && <p className="text-red-500">{error}</p>}
+      {successMessage && <p className="text-green-500">{successMessage}</p>}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-white mb-2">Dossier</label>
@@ -116,8 +132,10 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+          disabled={isSubmitting || !file}
         >
-          <Save className="mr-2" /> Enregistrer
+          <Save className="mr-2" />{" "}
+          {isSubmitting ? "En cours..." : "Enregistrer"}
         </button>
       </div>
     </form>
