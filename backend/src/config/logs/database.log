@@ -2028,3 +2028,65 @@
 [2025-02-07T14:16:44.798Z] INFO: Requête exécutée avec succès
 [2025-02-07T14:16:44.807Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
 [2025-02-07T14:16:44.809Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:03:44.032Z] INFO: Création du pool de connexions...
+[2025-02-12T17:03:44.086Z] INFO: Connexion à la base de données initialisée avec succès
+[2025-02-12T17:04:00.028Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-12T17:04:00.051Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:02.941Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:02.987Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:02.990Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:02.992Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:05.572Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:05.574Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-12T17:04:05.580Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:05.585Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:05.587Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:05.592Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:05.594Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-12T17:04:05.595Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:06.560Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:06.563Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-12T17:04:06.565Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:06.568Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:06.570Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:06.572Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:06.574Z] INFO: Exécution de la requête SQL : SELECT * FROM quotes
+[2025-02-12T17:04:06.576Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:07.202Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-12T17:04:07.205Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-12T17:04:07.208Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:07.213Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:07.215Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:07.218Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-12T17:04:07.220Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-12T17:04:07.222Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:07.222Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:07.224Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:07.225Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:07.226Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.570Z] INFO: Exécution de la requête SQL : SELECT 1
+[2025-02-12T17:04:11.572Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.612Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-12T17:04:11.615Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-12T17:04:11.616Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:11.620Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.623Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.624Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.626Z] INFO: Exécution de la requête SQL : SELECT * FROM invoices
+[2025-02-12T17:04:11.628Z] INFO: Exécution de la requête SQL : SELECT * FROM clients
+[2025-02-12T17:04:11.629Z] INFO: Exécution de la requête SQL : SELECT * FROM payments
+[2025-02-12T17:04:11.629Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.629Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:11.631Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:13.268Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-12T17:04:13.274Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:13.277Z] INFO: Exécution de la requête SQL : SELECT * FROM tasks
+[2025-02-12T17:04:13.278Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:15.015Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-12T17:04:15.024Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:15.027Z] INFO: Exécution de la requête SQL : SELECT * FROM documents
+[2025-02-12T17:04:15.029Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:16.542Z] INFO: Exécution de la requête SQL : SELECT * FROM companies WHERE id = ?
+[2025-02-12T17:04:16.556Z] INFO: Requête exécutée avec succès
+[2025-02-12T17:04:16.558Z] INFO: Exécution de la requête SQL : SELECT * FROM companies WHERE id = ?
+[2025-02-12T17:04:16.561Z] INFO: Requête exécutée avec succès
